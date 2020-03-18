@@ -151,14 +151,44 @@ def splitIntoTestTrain(src, dst):
     os.makedirs(testdir)
     traindir = "{}/train/{}".format(dst, classname)
     os.makedirs(traindir)
-    
+
     for myFile in test:
         processImage(myFile, testdir)
-    
+
     for myFile in train:
         processImage(myFile, traindir)
     return len(test), len(train)
 
+def splitIntoTestTrainAndValidate(src, dst):
+    print(src)
+    d, classname = os.path.split(src)
+    fileList = createFileList(src)
+    #10% randomness (10% test, 10% validate, the rest train)
+    numSamples = len(fileList) // 10
+    #if numSamples < 10:
+    #    numSamples = 10
+    numSamples2 = int(numSamples*2)
+    shuffledFiles = fileList
+    random.shuffle(shuffledFiles)
+    print(shuffledFiles)
+    test = shuffledFiles[0:numSamples]
+    val = shuffledFiles[numSamples:numSamples2]
+    train = shuffledFiles[numSamples2:]
+
+    testdir = "{}/test/{}".format(dst, classname)
+    os.makedirs(testdir)
+    traindir = "{}/train/{}".format(dst, classname)
+    os.makedirs(traindir)
+    valdir = "{}/val/{}".format(dst, classname)
+    os.makedirs(valdir)
+
+    for myFile in test:
+        processImage(myFile, testdir)
+    for myFile in val:
+        processImage(myFile, valdir)
+    for myFile in train:
+        processImage(myFile, traindir)
+    return len(test), len(train)
 
 if __name__ == "__main__":
     batch_size = 64
@@ -168,29 +198,43 @@ if __name__ == "__main__":
     print("\n\n\n")
 
     num_classes = 2
-    srcpics0 = "/home/pam/data/micropics/before"
-    srcpics1 = "/home/pam/data/micropics/after"
+    #srcpics0 = "/home/pam/data/micropics/before"
+    #srcpics1 = "/home/pam/data/micropics/after"
+    srcpics0 = "/home/pam/data/micropics/bigDataSet/before_gen"
+    srcpics1 = "/home/pam/data/micropics/bigDataSet/after_gen"
     datadir = "/home/pam/data/micropics/workingSet"
     trainSamples = 0
     testSamples = 0
     valSamples = 0
+    doShuffle = False
 
-    testdir = "{}/test".format(datadir)
-    traindir = "{}/train".format(datadir)
-    if os.path.exists(testdir):
-        shutil.rmtree(testdir)
-    os.makedirs(testdir)
-    if os.path.exists(traindir):
-        shutil.rmtree(traindir)
-    os.makedirs(traindir)
+    if doShuffle:
+        print("Doing shuffle this might take ages")
+        testdir = "{}/test".format(datadir)
+        traindir = "{}/train".format(datadir)
+        valdir = "{}/val".format(datadir)
+        if os.path.exists(testdir):
+            shutil.rmtree(testdir)
+        os.makedirs(testdir)
+        if os.path.exists(traindir):
+            shutil.rmtree(traindir)
+        os.makedirs(traindir)
+        if os.path.exists(valdir):
+            shutil.rmtree(valdir)
+        os.makedirs(valdir)
 
-    te, tr = splitIntoTestTrain(srcpics0, datadir)
-    trainSamples += tr
-    testSamples += te
-    te, tr = splitIntoTestTrain(srcpics1, datadir)
-    trainSamples += tr
-    testSamples += te
- 
+        te, tr = splitIntoTestTrainAndValidate(srcpics0, datadir)
+        trainSamples += tr
+        testSamples += te
+        te, tr = splitIntoTestTrainAndValidate(srcpics1, datadir)
+        trainSamples += tr
+        testSamples += te
+    else:
+        print("no shuffle")
+        trainSamples = 17848+32374
+        testSamples = 6276
+        valSamples = 6276
+
 
     if K.image_data_format() == 'channels_first':
         input_shape = (3, img_w, img_h)
@@ -208,16 +252,23 @@ if __name__ == "__main__":
     train_it = datagen.flow_from_directory('{}/train'.format(datadir),
                                            color_mode='rgb',
                                            target_size=(img_w, img_h),
-                                           batch_size=64,
+                                           batch_size=batch_size,
                                            class_mode="categorical",
                                            shuffle=True)
 
     test_it = datagen.flow_from_directory('{}/test'.format(datadir),
                                            color_mode='rgb',
                                            target_size=(img_w, img_h),
-                                           batch_size=64,
+                                           batch_size=batch_size,
                                            class_mode="categorical",
                                            shuffle=False)
+
+    val_it = datagen.flow_from_directory('{}/val'.format(datadir),
+                                           color_mode='rgb',
+                                           target_size=(img_w, img_h),
+                                           batch_size=batch_size,
+                                           class_mode="categorical",
+                                           shuffle=True)
 
 
     # And now the model....
@@ -255,7 +306,7 @@ if __name__ == "__main__":
                 if stepsPerEpoch < 20:
                     stepsPerEpoch = 20
                 print(stepsPerEpoch)
-                
+
 
 
                 valSteps = valSamples // batch_size
@@ -319,4 +370,3 @@ if __name__ == "__main__":
 
     print("The overall results:")
     print(resultsList)
-
