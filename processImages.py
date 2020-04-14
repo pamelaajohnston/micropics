@@ -202,7 +202,7 @@ if __name__ == "__main__":
     if len(physical_devices) > 0:
         print("Not enough GPU hardware devices available")
         config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        tf.keras.backend.set_session(tf.Session(config=config))
+        #tf.keras.backend.set_session(tf.Session(config=config))
 
     num_classes = 2
     #srcpics0 = "/home/pam/data/micropics/before"
