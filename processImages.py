@@ -3,6 +3,7 @@ import os
 import random
 import shutil
 import cv2
+import tensorflow as tf
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D
@@ -19,6 +20,7 @@ from sklearn.metrics import accuracy_score
 
 from tabulate import tabulate
 from PIL import Image
+
 
 def modelArchitecture(num_classes, architectureNumber):
     print(num_classes)
@@ -196,6 +198,11 @@ if __name__ == "__main__":
     img_w, img_h = 128, 128
 
     print("\n\n\n")
+    physical_devices = tf.config.experimental.list_physical_devices('GPU')
+    if len(physical_devices) > 0:
+        print("Not enough GPU hardware devices available")
+        config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        tf.keras.backend.set_session(tf.Session(config=config))
 
     num_classes = 2
     #srcpics0 = "/home/pam/data/micropics/before"
