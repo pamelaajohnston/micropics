@@ -12,6 +12,8 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 from keras import metrics
 from keras.backend import clear_session
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.applications.inception_v3 import preprocess_input
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
@@ -20,9 +22,10 @@ from sklearn.metrics import accuracy_score
 
 from tabulate import tabulate
 from PIL import Image
+import argparse
 
 
-def modelArchitecture(num_classes, architectureNumber):
+def modelArchitecture(input_shape, num_classes, architectureNumber):
     print(num_classes)
     if architectureNumber == 0:
         modelName = "My first architecture"
@@ -58,6 +61,31 @@ def modelArchitecture(num_classes, architectureNumber):
         model.add(Activation('relu'))
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
+    if architectureNumber == 2:
+        modelName = "VGG...maybe"
+        model = Sequential()
+        model.add(Conv2D(input_shape=input_shape,filters=64,kernel_size=(3,3),padding="same", activation="relu"))
+        model.add(Conv2D(filters=64,kernel_size=(3,3),padding="same", activation="relu"))
+        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Conv2D(filters=128, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=128, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
+        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Flatten())
+        model.add(Dense(units=4096,activation="relu"))
+        model.add(Dense(units=4096,activation="relu"))
+        model.add(Dense(units=2, activation="softmax"))
     return model, modelName
 
 def createFileList(myDir, format='.png'):
@@ -69,19 +97,32 @@ def createFileList(myDir, format='.png'):
                 fileList.append(fullName)
     return fileList
 
-def processImage1(inFile, outDir):
+def processImage(inFile, outFile, processImageMethod):
+    if processImageMethod == 0:
+        return processImage0(inFile, outFile)
+    if processImageMethod == 1:
+        return processImage1(inFile, outFile)
+    if processImageMethod == 2:
+        return processImage2(inFile, outFile)
+    if processImageMethod == 3:
+        return processImage3(inFile, outFile)
+
+
+def processImage0(inFile, outDir):
+    #print("Straight Copy")
     shutil.copy2(inFile, outDir)
 
-def processImage2(inFile, outDir):
+def processImage1(inFile, outDir):
+    #print("Copy and resize with Lanczos")
     im = Image.open(inFile)
     size = 128, 128
     img = im.resize(size, Image.LANCZOS)
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
-    print(outName)
     img.save(outName)
 
-def processImage3(inFile, outDir):
+def processImage2(inFile, outDir):
+    #print("Copy, normalize, resize")
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
@@ -90,7 +131,8 @@ def processImage3(inFile, outDir):
     resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
     cv2.imwrite(outName, resized)
 
-def processImage(inFile, outDir):
+def processImage3(inFile, outDir):
+    #print("High pass filter")
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
@@ -135,7 +177,7 @@ def customFilter(img):
     img_filtered = np.where(img_back>threshold, upper, img)
     return img_filtered
 
-def splitIntoTestTrain(src, dst):
+def splitIntoTestTrain(src, dst, processImageMethod=0):
     print(src)
     d, classname = os.path.split(src)
     fileList = createFileList(src)
@@ -155,13 +197,13 @@ def splitIntoTestTrain(src, dst):
     os.makedirs(traindir)
 
     for myFile in test:
-        processImage(myFile, testdir)
+        processImage(myFile, testdir, processImageMethod)
 
     for myFile in train:
-        processImage(myFile, traindir)
+        processImage(myFile, traindir, processImageMethod)
     return len(test), len(train)
 
-def splitIntoTestTrainAndValidate(src, dst):
+def splitIntoTestTrainAndValidate(src, dst, processImageMethod=0):
     print(src)
     d, classname = os.path.split(src)
     fileList = createFileList(src)
@@ -185,12 +227,36 @@ def splitIntoTestTrainAndValidate(src, dst):
     os.makedirs(valdir)
 
     for myFile in test:
-        processImage(myFile, testdir)
+        processImage(myFile, testdir, processImageMethod)
     for myFile in val:
-        processImage(myFile, valdir)
+        processImage(myFile, valdir, processImageMethod)
     for myFile in train:
-        processImage(myFile, traindir)
+        processImage(myFile, traindir, processImageMethod)
     return len(test), len(train)
+
+def decideDataGeneration(dataGenType=0):
+    datagen = ImageDataGenerator(
+        rescale=1. / 255,
+        horizontal_flip=True,
+        vertical_flip = True,
+        zca_whitening = True,
+        rotation_range = 180
+    )
+    if dataGenType == 1:
+        datagen= ImageDataGenerator(
+            preprocessing_function=preprocess_input,
+            width_shift_range=0.2,
+            height_shift_range=0.2,
+            shear_range=0.2,
+            rotation_range=90,
+            brightness_range=[1.0, 1.15],
+            zoom_range=0.2,
+            horizontal_flip=True,
+            vertical_flip=True
+        )
+
+
+    return datagen
 
 if __name__ == "__main__":
     batch_size = 64
@@ -214,6 +280,29 @@ if __name__ == "__main__":
     testSamples = 0
     valSamples = 0
     doShuffle = False
+    dataGenType = 0
+    processImageMethod = 0
+
+    parser = argparse.ArgumentParser(description='Generates some random numbers')
+    parser.add_argument("-b", "--before_gen", help="the before treatment directory")
+    parser.add_argument("-a", "--after_gen",  help="the after treatment directory")
+    parser.add_argument("-d", "--data_dir",   help="the directory to store the data")
+    parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter", type=int)
+    parser.add_argument("-g", "--data_gen",   help="the datagen type (0 for mine, 1 for Ismaels)", type=int)
+    args = parser.parse_args()
+
+    if args.before_gen:
+        srcpics0 = args.before_gen
+    if args.after_gen:
+        srcpics1 = args.after_gen
+    if args.data_dir:
+        datadir = args.data_dir
+    if args.data_gen:
+        dataGenType = args.data_gen
+    if args.process_files:
+        doShuffle = True
+        processImageMethod = args.process_files
+
 
     if doShuffle:
         print("Doing shuffle this might take ages")
@@ -230,10 +319,10 @@ if __name__ == "__main__":
             shutil.rmtree(valdir)
         os.makedirs(valdir)
 
-        te, tr = splitIntoTestTrainAndValidate(srcpics0, datadir)
+        te, tr = splitIntoTestTrainAndValidate(srcpics0, datadir, processImageMethod)
         trainSamples += tr
         testSamples += te
-        te, tr = splitIntoTestTrainAndValidate(srcpics1, datadir)
+        te, tr = splitIntoTestTrainAndValidate(srcpics1, datadir, processImageMethod)
         trainSamples += tr
         testSamples += te
     else:
@@ -249,13 +338,8 @@ if __name__ == "__main__":
         input_shape = (img_w, img_h, 3)
 
     # Note that there isn't any data augmentation
-    datagen = ImageDataGenerator(
-        rescale=1. / 255,
-        horizontal_flip=True,
-        vertical_flip = True,
-        zca_whitening = True,
-        rotation_range = 180
-    )
+    datagen = decideDataGeneration(dataGenType)
+
     train_it = datagen.flow_from_directory('{}/train'.format(datadir),
                                            color_mode='rgb',
                                            target_size=(img_w, img_h),
@@ -294,86 +378,115 @@ if __name__ == "__main__":
     bestMCCmodel = 0
     bestAccuracyModel = 0
 
+    listOfTests = [ [1, 3, "rmsprop" ],
+                    [1, 3, "sgd" ],
+                    [1, 3, "adam" ],
+                    [1, 3, "adagrad" ],
+
+                    [2, 3, "rmsprop" ],
+                    [2, 3, "sgd" ],
+                    [2, 3, "adam" ],
+                    [2, 3, "adagrad" ],
+
+                    [1, 20, "rmsprop" ],
+                    [1, 20, "sgd" ],
+                    [1, 20, "adam" ],
+                    [1, 20, "adagrad" ],
+
+                    [2, 20, "rmsprop" ],
+                    [2, 20, "sgd" ],
+                    [2, 20, "adam" ],
+                    [2, 20, "adagrad" ],
+     ]
 
     resultsList = []
     #resultsList.append(("archNo", "epochs", "opt", "f1", "acc", "mcc"))
-    for architectureNumber in modelArchitectures:
-        for epochs in epochNumbers:
-            for optimiser in optimisers:
-                model, modelName = modelArchitecture(num_classes, architectureNumber)
+    #for architectureNumber in modelArchitectures:
+        #for epochs in epochNumbers:
+            #for optimiser in optimisers:
+    for test in listOfTests:
+        architectureNumber = test[0]
+        epochs = test[1]
+        optimiser = test[2]
+
+        model, modelName = modelArchitecture(input_shape, num_classes, architectureNumber)
 
 
-                print("Compiling the model: {}".format(modelName))
-                model.compile(loss='mse',
-                              optimizer=optimiser,
-                              metrics=[metrics.categorical_accuracy])
+        print("Compiling the model: {}".format(modelName))
+        model.compile(loss='mse',
+                      optimizer=optimiser,
+                      metrics=[metrics.categorical_accuracy])
 
 
-                stepsPerEpoch = trainSamples // batch_size
-                if stepsPerEpoch < 20:
-                    stepsPerEpoch = 20
-                print(stepsPerEpoch)
+        stepsPerEpoch = trainSamples // batch_size
+        if stepsPerEpoch < 20:
+            stepsPerEpoch = 20
+        print(stepsPerEpoch)
 
 
 
-                valSteps = valSamples // batch_size
+        valSteps = valSamples // batch_size
 
-                print("Fitting the model: {}".format(modelName))
-                model.fit_generator(
-                    train_it,
-                    steps_per_epoch=stepsPerEpoch,
-                    epochs=epochs,
-                    validation_data=test_it,
-                    validation_steps=valSteps)
+        early = EarlyStopping(monitor='val_acc', min_delta=0, patience=5, verbose=1, mode='auto')
 
-                probabilities = model.predict_generator(generator=test_it)
-                #print(probabilities)
-                y_pred = np.argmax(probabilities, axis=-1)
-                #print(y_pred)
-                y_true = test_it.classes
-                #print(y_true)
+        print("Fitting the model: {}".format(modelName))
+        model.fit_generator(
+            train_it,
+            steps_per_epoch=stepsPerEpoch,
+            epochs=epochs,
+            validation_data=test_it,
+            validation_steps=valSteps,
+            callbacks=[early]
+            )
 
-                cm = confusion_matrix(y_true, y_pred)
-                print("The stats for {} after {} epochs with {} opt:".format(modelName, epochs, optimiser))
-                f1 = f1_score(y_true, y_pred, average='micro')
-                f1_all = f1_score(y_true, y_pred, average=None)
-                mcc = matthews_corrcoef(y_true, y_pred)
-                acc = accuracy_score(y_true, y_pred, normalize=True)
-                print(cm)
-                print("f1 micro = {} and all {} ".format(f1, f1_all))
-                print("accuracy = {}".format(acc))
-                print("mcc = {}".format(mcc))
-                myResults = (architectureNumber, epochs, optimiser, f1, acc, mcc)
-                resultsList.append(myResults)
-                # print out the results as we go...
-                print(tabulate(resultsList, headers=["archNo", "epochs", "opt", "f1", "acc", "mcc"]))
+        probabilities = model.predict_generator(generator=test_it)
+        #print(probabilities)
+        y_pred = np.argmax(probabilities, axis=-1)
+        #print(y_pred)
+        y_true = test_it.classes
+        #print(y_true)
 
-                saveModel = False
+        cm = confusion_matrix(y_true, y_pred)
+        print("The stats for {} after {} epochs with {} opt:".format(modelName, epochs, optimiser))
+        f1 = f1_score(y_true, y_pred, average='micro')
+        f1_all = f1_score(y_true, y_pred, average=None)
+        mcc = matthews_corrcoef(y_true, y_pred)
+        acc = accuracy_score(y_true, y_pred, normalize=True)
+        print(cm)
+        print("f1 micro = {} and all {} ".format(f1, f1_all))
+        print("accuracy = {}".format(acc))
+        print("mcc = {}".format(mcc))
+        myResults = (architectureNumber, epochs, optimiser, f1, acc, mcc)
+        resultsList.append(myResults)
+        # print out the results as we go...
+        print(tabulate(resultsList, headers=["archNo", "epochs", "opt", "f1", "acc", "mcc"]))
 
-                if f1 > bestf1:
-                    bestf1 = f1
-                    bestf1model = model
-                    saveModel = True
+        saveModel = False
 
-                if mcc > bestMCC:
-                    bestMCC = mcc
-                    bestMCCmodel = model
-                    saveModel = True
+        if f1 > bestf1:
+            bestf1 = f1
+            bestf1model = model
+            saveModel = True
 
-                if acc > bestAccuracy:
-                    bestAccuracy = acc
-                    bestAccuracyModel = model
-                    saveModel = True
+        if mcc > bestMCC:
+            bestMCC = mcc
+            bestMCCmodel = model
+            saveModel = True
 
-                # save model to file
-                if saveModel:
-                    modelBaseFilename = "arch{}_epochs{}_opt{}".format(architectureNumber, epochs, optimiser)
-                    print("Saving to {}".format(modelBaseFilename))
-                    model_json = model.to_json()
-                    with open("{}.json".format(modelBaseFilename), "w") as json_file:
-                        json_file.write(model_json)
-                    model.save_weights("{}.h5".format(modelBaseFilename))
-                clear_session()
+        if acc > bestAccuracy:
+            bestAccuracy = acc
+            bestAccuracyModel = model
+            saveModel = True
+
+        # save model to file
+        if saveModel:
+            modelBaseFilename = "arch{}_epochs{}_opt{}".format(architectureNumber, epochs, optimiser)
+            print("Saving to {}".format(modelBaseFilename))
+            model_json = model.to_json()
+            with open("{}.json".format(modelBaseFilename), "w") as json_file:
+                json_file.write(model_json)
+            model.save_weights("{}.h5".format(modelBaseFilename))
+        clear_session()
 
     print("The overall results:")
     print(resultsList)
