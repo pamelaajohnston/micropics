@@ -378,12 +378,13 @@ if __name__ == "__main__":
     bestMCCmodel = 0
     bestAccuracyModel = 0
 
-    listOfTests = [ [1, 3, "rmsprop" ],
+    listOfTests = [ [1, 20, "rmsprop" ],
+                    [2, 20, "rmsprop" ],
+
                     [1, 3, "sgd" ],
                     [1, 3, "adam" ],
                     [1, 3, "adagrad" ],
 
-                    [2, 3, "rmsprop" ],
                     [2, 3, "sgd" ],
                     [2, 3, "adam" ],
                     [2, 3, "adagrad" ],
