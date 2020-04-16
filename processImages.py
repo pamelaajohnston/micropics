@@ -28,7 +28,7 @@ import argparse
 def modelArchitecture(input_shape, num_classes, architectureNumber):
     print(num_classes)
     if architectureNumber == 0:
-        modelName = "My first architecture"
+        modelName = "first_architecture"
         model = Sequential()
         model.add(Conv2D(32, (4, 4), input_shape=input_shape))
         model.add(Activation('relu'))
@@ -45,7 +45,7 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
     if architectureNumber == 1:
-        modelName = "three 3x3 convs and fc"
+        modelName = "three_3x3_convs_and_fc"
         model = Sequential()
         model.add(Conv2D(32, (3, 3), input_shape=input_shape))
         model.add(Activation('relu'))
@@ -62,30 +62,110 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
     if architectureNumber == 2:
-        modelName = "VGG...maybe"
+        modelName = "AlexNet_modified"
         model = Sequential()
-        model.add(Conv2D(input_shape=input_shape,filters=64,kernel_size=(3,3),padding="same", activation="relu"))
-        model.add(Conv2D(filters=64,kernel_size=(3,3),padding="same", activation="relu"))
-        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
-        model.add(Conv2D(filters=128, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=128, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
-        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=256, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(Conv2D(filters=512, kernel_size=(3,3), padding="same", activation="relu"))
-        model.add(MaxPooling2D(pool_size=(2,2),strides=(2,2)))
+        model.add(Conv2D(96, (11, 11), strides=(4, 4), padding='valid', input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(256, (11, 11), strides=(1, 1), padding='valid'))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(384, (3, 3), strides=(1, 1), padding='valid'))
+        model.add(Activation('relu'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(384, (3, 3), strides=(1, 1), padding='valid'))
+        model.add(Activation('relu'))
+        model.add(BatchNormalization())
+
+        model.add(Conv2D(256, (3, 3), strides=(1, 1), padding='valid'))
+        model.add(Activation('relu'))
+
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(BatchNormalization())
+
         model.add(Flatten())
-        model.add(Dense(units=4096,activation="relu"))
-        model.add(Dense(units=4096,activation="relu"))
-        model.add(Dense(units=2, activation="softmax"))
+        model.add(Dense(4096))
+        model.add(Activation('relu'))
+        # Model dropout to prevent overfitting
+        model.add(Dropout(0.4))
+        model.add(BatchNormalization())
+        model.add(Dense(4096))
+        model.add(Activation('relu'))
+        model.add(Dropout(0.4))
+        model.add(BatchNormalization())
+        model.add(Dense(1000))
+        model.add(Activation('relu'))
+        model.add(Dropout(0.4))
+        model.add(BatchNormalization())
+        model.add(Dense(num_classes))
+        model.add(Activation('softmax'))
+    if architectureNumber == 3:
+        modelName = "VGG-16_architecture"
+        model = Sequential()
+        model.add(Conv2D(64, (3, 3), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        model.add(Conv2D(128, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(128, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        model.add(Conv2D(256, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(256, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(256, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(Conv2D(512, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        model.add(Flatten())
+        model.add(Dense(4096))
+        model.add(Activation('relu'))
+        model.add(Dense(4096))
+        model.add(Activation('relu'))
+        model.add(Dense(num_classes))
+        model.add(Activation('softmax'))
     return model, modelName
 
 def createFileList(myDir, format='.png'):
@@ -97,47 +177,47 @@ def createFileList(myDir, format='.png'):
                 fileList.append(fullName)
     return fileList
 
-def processImage(inFile, outFile, processImageMethod):
+def processImage(inFile, outFile, processImageMethod, dim=128):
     if processImageMethod == 0:
         return processImage0(inFile, outFile)
     if processImageMethod == 1:
-        return processImage1(inFile, outFile)
+        return processImage1(inFile, outFile, dim)
     if processImageMethod == 2:
-        return processImage2(inFile, outFile)
+        return processImage2(inFile, outFile, dim)
     if processImageMethod == 3:
-        return processImage3(inFile, outFile)
+        return processImage3(inFile, outFile, dim)
 
 
 def processImage0(inFile, outDir):
     #print("Straight Copy")
     shutil.copy2(inFile, outDir)
 
-def processImage1(inFile, outDir):
+def processImage1(inFile, outDir, dim=128):
     #print("Copy and resize with Lanczos")
     im = Image.open(inFile)
-    size = 128, 128
+    size = dim, dim
     img = im.resize(size, Image.LANCZOS)
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
     img.save(outName)
 
-def processImage2(inFile, outDir):
+def processImage2(inFile, outDir, dim=128):
     #print("Copy, normalize, resize")
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
     im_norm = cv2.normalize(im, None, 0, 255, cv2.NORM_MINMAX)
-    size = 128, 128
+    size = dim, dim
     resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
     cv2.imwrite(outName, resized)
 
-def processImage3(inFile, outDir):
+def processImage3(inFile, outDir, dim=128):
     #print("High pass filter")
     d, b = os.path.split(inFile)
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
     im_norm = customFilter(im)
-    size = 128, 128
+    size = dim, dim
     resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
     cv2.imwrite(outName, resized)
 
@@ -197,10 +277,10 @@ def splitIntoTestTrain(src, dst, processImageMethod=0):
     os.makedirs(traindir)
 
     for myFile in test:
-        processImage(myFile, testdir, processImageMethod)
+        processImage(myFile, testdir, processImageMethod, img_w)
 
     for myFile in train:
-        processImage(myFile, traindir, processImageMethod)
+        processImage(myFile, traindir, processImageMethod, img_w)
     return len(test), len(train)
 
 def splitIntoTestTrainAndValidate(src, dst, processImageMethod=0):
@@ -227,11 +307,11 @@ def splitIntoTestTrainAndValidate(src, dst, processImageMethod=0):
     os.makedirs(valdir)
 
     for myFile in test:
-        processImage(myFile, testdir, processImageMethod)
+        processImage(myFile, testdir, processImageMethod, img_w)
     for myFile in val:
-        processImage(myFile, valdir, processImageMethod)
+        processImage(myFile, valdir, processImageMethod, img_w)
     for myFile in train:
-        processImage(myFile, traindir, processImageMethod)
+        processImage(myFile, traindir, processImageMethod, img_w)
     return len(test), len(train)
 
 def decideDataGeneration(dataGenType=0):
@@ -260,7 +340,6 @@ def decideDataGeneration(dataGenType=0):
 
 if __name__ == "__main__":
     batch_size = 64
-    epochs = 15
     img_w, img_h = 128, 128
 
     print("\n\n\n")
@@ -282,13 +361,19 @@ if __name__ == "__main__":
     doShuffle = False
     dataGenType = 0
     processImageMethod = 0
+    architectureNumber = 1
+    optimiser = "sgd"
+    epochs = 3
 
-    parser = argparse.ArgumentParser(description='Generates some random numbers')
+    parser = argparse.ArgumentParser(description='Tests a specific model with some options')
     parser.add_argument("-b", "--before_gen", help="the before treatment directory")
     parser.add_argument("-a", "--after_gen",  help="the after treatment directory")
     parser.add_argument("-d", "--data_dir",   help="the directory to store the data")
     parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter", type=int)
     parser.add_argument("-g", "--data_gen",   help="the datagen type (0 for mine, 1 for Ismaels)", type=int)
+    parser.add_argument("-m", "--model_number",   help="network number: 0:4x4 network; 1:LeNet5ish; 2:VGG16; 3:AlexNet", type=int)
+    parser.add_argument("-o", "--optimiser",   help="one of sgd, rmsprop, adam, adagrad")
+    parser.add_argument("-e", "--epochs",   help="Number of epochs to run for", type=int)
     args = parser.parse_args()
 
     if args.before_gen:
@@ -297,11 +382,22 @@ if __name__ == "__main__":
         srcpics1 = args.after_gen
     if args.data_dir:
         datadir = args.data_dir
-    if args.data_gen:
-        dataGenType = args.data_gen
     if args.process_files:
         doShuffle = True
         processImageMethod = args.process_files
+    if args.data_gen:
+        dataGenType = args.data_gen
+    if args.model_number:
+        architectureNumber = args.model_number
+    if args.optimiser:
+        optimser = args.optimiser
+    if args.epochs:
+        epochs = args.epochs
+
+    if architectureNumber > 1:
+        img_w = 224
+        img_h = 224
+
 
 
     if doShuffle:
@@ -327,14 +423,16 @@ if __name__ == "__main__":
         testSamples += te
     else:
         print("no shuffle")
-        trainSamples = 17848+32374
-        testSamples = 6276
-        valSamples = 6276
+        trainSamples = 3360 #17848+32374
+        testSamples = 210
+        valSamples = 210
 
 
     if K.image_data_format() == 'channels_first':
+        print("channels first")
         input_shape = (3, img_w, img_h)
     else:
+        print("channels last")
         input_shape = (img_w, img_h, 3)
 
     # Note that there isn't any data augmentation
@@ -363,12 +461,12 @@ if __name__ == "__main__":
 
 
     # And now the model....
-    modelArchitectures = range(0, 7)
-    modelArchitectures = [1,]
-    epochNumbers = [3, 5, 10]
-    epochNumbers = [10, 25, 30]
-    optimisers = ["rmsprop", "sgd", "adam", "adagrad"]
-    optimisers = ["sgd", "adam"]
+    #modelArchitectures = range(0, 7)
+    #modelArchitectures = [1,]
+    #epochNumbers = [3, 5, 10]
+    #epochNumbers = [10, 25, 30]
+    #optimisers = ["rmsprop", "sgd", "adam", "adagrad"]
+    #optimisers = ["sgd", "adam"]
 
     bestf1 = 0
     bestNetwork = "unknown"
@@ -399,6 +497,8 @@ if __name__ == "__main__":
                     [2, 20, "adam" ],
                     [2, 20, "adagrad" ],
      ]
+    doTheSaving = False
+    listOfTests = [[architectureNumber, epochs, optimiser],]
 
     resultsList = []
     #resultsList.append(("archNo", "epochs", "opt", "f1", "acc", "mcc"))
@@ -406,6 +506,7 @@ if __name__ == "__main__":
         #for epochs in epochNumbers:
             #for optimiser in optimisers:
     for test in listOfTests:
+
         architectureNumber = test[0]
         epochs = test[1]
         optimiser = test[2]
@@ -428,7 +529,7 @@ if __name__ == "__main__":
 
         valSteps = valSamples // batch_size
 
-        early = EarlyStopping(monitor='val_acc', min_delta=0, patience=5, verbose=1, mode='auto')
+        early = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=5, verbose=1, mode='auto')
 
         print("Fitting the model: {}".format(modelName))
         model.fit_generator(
@@ -461,32 +562,44 @@ if __name__ == "__main__":
         resultsList.append(myResults)
         # print out the results as we go...
         print(tabulate(resultsList, headers=["archNo", "epochs", "opt", "f1", "acc", "mcc"]))
+        print(cm[0][0])
 
-        saveModel = False
+        theseResults = [(datadir, dataGenType, modelName, epochs, optimiser, cm[0][0], cm[0][1], cm[1][0], cm[1][1], f1)]
+        print(theseResults)
+        #tryit = tabulate(theseResults, headers=["datadir", "augmentation", "Model", "epochs", "opt", "cm00", "cm01", "cm10", "cm11", "f1"])
+        with open('output.txt', 'a') as f:
+            print(tabulate(theseResults, headers=["datadir", "augmentation", "Model", "epochs", "opt", "cm00", "cm01", "cm10", "cm11", "f1"]), file=f)
+            print("\n", file=f)
+        with open('output_alt.txt', 'a') as f:
+            print(theseResults)
+            print("\n", file=f)
 
-        if f1 > bestf1:
-            bestf1 = f1
-            bestf1model = model
-            saveModel = True
+        if doTheSaving:
+            saveModel = False
 
-        if mcc > bestMCC:
-            bestMCC = mcc
-            bestMCCmodel = model
-            saveModel = True
+            if f1 > bestf1:
+                bestf1 = f1
+                bestf1model = model
+                saveModel = True
 
-        if acc > bestAccuracy:
-            bestAccuracy = acc
-            bestAccuracyModel = model
-            saveModel = True
+            if mcc > bestMCC:
+                bestMCC = mcc
+                bestMCCmodel = model
+                saveModel = True
 
-        # save model to file
-        if saveModel:
-            modelBaseFilename = "arch{}_epochs{}_opt{}".format(architectureNumber, epochs, optimiser)
-            print("Saving to {}".format(modelBaseFilename))
-            model_json = model.to_json()
-            with open("{}.json".format(modelBaseFilename), "w") as json_file:
-                json_file.write(model_json)
-            model.save_weights("{}.h5".format(modelBaseFilename))
+            if acc > bestAccuracy:
+                bestAccuracy = acc
+                bestAccuracyModel = model
+                saveModel = True
+
+            # save model to file
+            if saveModel:
+                modelBaseFilename = "arch{}_epochs{}_opt{}".format(architectureNumber, epochs, optimiser)
+                print("Saving to {}".format(modelBaseFilename))
+                model_json = model.to_json()
+                with open("{}.json".format(modelBaseFilename), "w") as json_file:
+                    json_file.write(model_json)
+                model.save_weights("{}.h5".format(modelBaseFilename))
         clear_session()
 
     print("The overall results:")
