@@ -271,10 +271,10 @@ if __name__ == "__main__":
         #tf.keras.backend.set_session(tf.Session(config=config))
 
     num_classes = 2
-    #srcpics0 = "/home/pam/data/micropics/before"
-    #srcpics1 = "/home/pam/data/micropics/after"
-    srcpics0 = "/home/pam/data/micropics/bigDataSet/before_gen"
-    srcpics1 = "/home/pam/data/micropics/bigDataSet/after_gen"
+    srcpics0 = "/home/pam/data/micropics/before"
+    srcpics1 = "/home/pam/data/micropics/after"
+    #srcpics0 = "/home/pam/data/micropics/bigDataSet/before_gen"
+    #srcpics1 = "/home/pam/data/micropics/bigDataSet/after_gen"
     datadir = "/home/pam/data/micropics/workingSet"
     trainSamples = 0
     testSamples = 0
