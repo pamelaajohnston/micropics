@@ -14,6 +14,7 @@ from keras import metrics
 from keras.backend import clear_session
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.applications.inception_v3 import preprocess_input
+from keras import optimizers
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
@@ -423,9 +424,9 @@ if __name__ == "__main__":
         testSamples += te
     else:
         print("no shuffle")
-        trainSamples = 3360 #17848+32374
-        testSamples = 210
-        valSamples = 210
+        trainSamples = 3362 #17848+32374
+        testSamples = 418
+        valSamples = 418
 
 
     if K.image_data_format() == 'channels_first':
@@ -511,6 +512,11 @@ if __name__ == "__main__":
         epochs = test[1]
         optimiser = test[2]
 
+        if optimiser == "sgd1":
+            # Trying something with SGD.
+            mySgd = optimizers.SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
+            optimiser = mySgd
+
         model, modelName = modelArchitecture(input_shape, num_classes, architectureNumber)
 
 
@@ -529,7 +535,7 @@ if __name__ == "__main__":
 
         valSteps = valSamples // batch_size
 
-        early = EarlyStopping(monitor='val_acc', min_delta=0.01, patience=5, verbose=1, mode='auto')
+        early = EarlyStopping(monitor='val_categorical_accuracy', min_delta=0.01, patience=5, verbose=1, mode='auto')
 
         print("Fitting the model: {}".format(modelName))
         model.fit_generator(
