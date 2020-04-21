@@ -391,7 +391,7 @@ if __name__ == "__main__":
     if args.model_number:
         architectureNumber = args.model_number
     if args.optimiser:
-        optimser = args.optimiser
+        optimiser = args.optimiser
     if args.epochs:
         epochs = args.epochs
 
@@ -512,8 +512,10 @@ if __name__ == "__main__":
         epochs = test[1]
         optimiser = test[2]
 
-        if optimiser == "sgd1":
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{}".format(optimiser))
+        if "sgd1" in optimiser:
             # Trying something with SGD.
+            print("switching to optimer SGD1")
             mySgd = optimizers.SGD(learning_rate=0.001, momentum=0.9, nesterov=False)
             optimiser = mySgd
 
