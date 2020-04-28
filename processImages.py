@@ -168,12 +168,12 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
     if architectureNumber == 4:
-        modelName = "MNIST_99.25Simple"
+        modelName = "MNIST_99.25Simple_Stride2"
         model = Sequential()
         #model.add(Conv2D(32, kernel_size=(3, 3),
         #         activation='relu',
         #         input_shape=input_shape))
-        model.add(Conv2D(32, (3, 3), strides=(4, 4), input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(2, 2), input_shape=input_shape))
         model.add(Activation('relu'))
 
         #model.add(Conv2D(64, (3, 3), activation='relu'))
