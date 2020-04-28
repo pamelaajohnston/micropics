@@ -167,6 +167,19 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Activation('relu'))
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
+    if architectureNumber == 4:
+        modelName = "MNIST_99.25Simple"
+        model = Sequential()
+        model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=input_shape))
+        model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        model.add(Dense(num_classes, activation='softmax'))
     return model, modelName
 
 def createFileList(myDir, format='.png'):
@@ -394,9 +407,9 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--before_gen", help="the before treatment directory")
     parser.add_argument("-a", "--after_gen",  help="the after treatment directory")
     parser.add_argument("-d", "--data_dir",   help="the directory to store the data")
-    parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter", type=int)
+    parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter 4: morph", type=int)
     parser.add_argument("-g", "--data_gen",   help="the datagen type (0 for mine, 1 for Ismaels)", type=int)
-    parser.add_argument("-m", "--model_number",   help="network number: 0:4x4 network; 1:LeNet5ish; 2:VGG16; 3:AlexNet", type=int)
+    parser.add_argument("-m", "--model_number",   help="network number: 0:4x4 network; 1:LeNet5ish; 2:VGG16; 3:AlexNet 4:MNIST_99", type=int)
     parser.add_argument("-o", "--optimiser",   help="one of sgd, rmsprop, adam, adagrad")
     parser.add_argument("-e", "--epochs",   help="Number of epochs to run for", type=int)
     args = parser.parse_args()
