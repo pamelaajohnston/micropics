@@ -187,6 +187,8 @@ def processImage(inFile, outFile, processImageMethod, dim=128):
         return processImage2(inFile, outFile, dim)
     if processImageMethod == 3:
         return processImage3(inFile, outFile, dim)
+    if processImageMethod == 4:
+        return processImage4(inFile, outFile, dim)
 
 
 def processImage0(inFile, outDir):
@@ -218,6 +220,16 @@ def processImage3(inFile, outDir, dim=128):
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
     im_norm = customFilter(im)
+    size = dim, dim
+    resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
+    cv2.imwrite(outName, resized)
+
+def processImage4(inFile, outDir, dim=128):
+    #print("High pass filter")
+    d, b = os.path.split(inFile)
+    outName = os.path.join(outDir, b)
+    im = cv2.imread(inFile, 0)
+    im_norm = customFilter2(im)
     size = dim, dim
     resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
     cv2.imwrite(outName, resized)
@@ -256,6 +268,18 @@ def customFilter(img):
     threshold = myThres
     upper = 0
     img_filtered = np.where(img_back>threshold, upper, img)
+    return img_filtered
+
+def customFilter2(img):
+    gray = img
+    ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    # noise removal
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
+    # sure background area
+    sure_bg = cv2.dilate(opening,kernel,iterations=3)
+    upper = 0
+    img_filtered = np.where(sure_bg==0, upper, img)
     return img_filtered
 
 def splitIntoTestTrain(src, dst, processImageMethod=0):
