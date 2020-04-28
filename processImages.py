@@ -179,12 +179,14 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         #model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(Conv2D(64, (3, 3)))
         model.add(Activation('relu'))
-        
+
         model.add(MaxPooling2D(pool_size=(2, 2)))
-        model.add(Dropout(0.25))
+        model.add(BatchNormalization())
+        #model.add(Dropout(0.25))
         model.add(Flatten())
         model.add(Dense(128, activation='relu'))
-        model.add(Dropout(0.5))
+        #model.add(Dropout(0.5))
+        model.add(BatchNormalization())
         model.add(Dense(num_classes, activation='softmax'))
     return model, modelName
 
