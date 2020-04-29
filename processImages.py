@@ -168,6 +168,7 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
     if architectureNumber == 4:
+        # previous stride of 1 too big, changed to stride 4
         modelName = "MNIST_99.25Simple_Stride2"
         model = Sequential()
         #model.add(Conv2D(32, kernel_size=(3, 3),
@@ -178,6 +179,50 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
 
         #model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        #model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        #model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
+    if architectureNumber == 5:
+        # previous stride of 1 too big, changed to stride 4
+        modelName = "MNIST_99.25Simple_Stride4"
+        model = Sequential()
+        #model.add(Conv2D(32, kernel_size=(3, 3),
+        #         activation='relu',
+        #         input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(4, 4), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        #model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        #model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        #model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
+    if architectureNumber == 6:
+        # previous stride of 1 too big, changed to stride 4
+        modelName = "MNIST_99.25Simple_Stride1"
+        model = Sequential()
+        #model.add(Conv2D(32, kernel_size=(3, 3),
+        #         activation='relu',
+        #         input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(1, 1), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        #model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(Conv2D(32, (3, 3)))
         model.add(Activation('relu'))
 
         model.add(MaxPooling2D(pool_size=(2, 2)))
