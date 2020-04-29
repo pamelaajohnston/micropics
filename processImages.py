@@ -636,7 +636,7 @@ if __name__ == "__main__":
             epochs=epochs,
             validation_data=test_it,
             validation_steps=valSteps,
-            callbacks=[early]
+            #callbacks=[early]
             )
 
         probabilities = model.predict_generator(generator=test_it)
