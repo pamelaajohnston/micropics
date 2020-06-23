@@ -233,6 +233,11 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Dropout(0.5))
         #model.add(BatchNormalization())
         model.add(Dense(num_classes, activation='softmax'))
+
+    print(modelName)
+    print(model.summary())
+    print("Number of parameters")
+    print(model.count_params())
     return model, modelName
 
 def createFileList(myDir, format='.png'):
