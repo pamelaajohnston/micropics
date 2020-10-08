@@ -101,6 +101,19 @@ def countDots(img):
 
     print("Dots number: {}".format(len(xcnts)))
     #Dots number: 23
+
+def sortOutTwoPoints(x0, y0, x1, y1):
+    myForwardTuple = (x0, y0, x1, y1)
+    myReverseTuple = (x1, y1, x0, y0)
+    myTuple = myForwardTuple
+    if x1 < x0:
+        myTuple = myReverseTuple
+    if x0 == x1:
+        if y1 < y0:
+            myTuple = myReverseTuple
+    return myTuple
+
+
 def joinDots(img):
     #print(img.shape)
     ## threshold
@@ -159,20 +172,20 @@ def joinDots(img):
         aDists = list(zip(aListDist, xlist, ylist))
         sort = sorted(aDists, key=lambda second: second[0])
         sort = np.array(sort)
-        print("Joining a({}, {}) and b({}, {}) distance {}".format(a[0], a[1], sort[0,1], sort[0,2], sort[0,0]))
         # check for duplications and go for next nearest neighbour if there is a duplication
         idx = 0
-        myTuple = (a[0], a[1], sort[idx,1], sort[idx,2])
-        myReverseTuple = (sort[idx,1], sort[idx,2], a[0], a[1])
-        while (myReverseTuple in connections):
+        b = int(sort[idx,1]), int(sort[idx,2])
+        # Let's always organise the tuple from left to right, top to bottom
+        myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
+        print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
+        while (myTuple in connections):
             idx = idx + 1
             if idx < len(sort):
-                myTuple = (a[0], a[1], sort[idx,1], sort[idx,2])
-                myReverseTuple = (sort[idx,1], sort[idx,2], a[0], a[1])
+                myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
+                print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
             else:
                 myTuple = null
                 print("No other point found?")
-            print("Found a duplicate, choosing another point")
         if myTuple:
             connections.append(myTuple)
 
