@@ -101,6 +101,94 @@ def countDots(img):
 
     print("Dots number: {}".format(len(xcnts)))
     #Dots number: 23
+def joinDots(img):
+    #print(img.shape)
+    ## threshold
+    grayImage = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    th, threshed = cv2.threshold(grayImage, 100, 255,cv2.THRESH_BINARY_INV|cv2.THRESH_OTSU)
+    #cv2.imshow('gray image', grayImage)
+    #cv2.imshow('Thresholded image', threshed)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+
+    ## findcontours
+    cnts = cv2.findContours(threshed, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)[-2]
+    #im2, cnts, hierarchy = cv2.findContours(threshed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    ## filter by area
+    s1= 10
+    s2 = 100
+    xcnts = []
+    for cnt in cnts:
+        a = cv2.contourArea(cnt)
+        #print(a)
+        if s1 < a < s2:
+            xcnts.append(cnt)
+
+    # from https://stackoverflow.com/questions/51022381/how-do-i-connect-closest-points-together-using-opencv
+    listx = []
+    listy = []
+    for cnt in xcnts:
+        M = cv2.moments(cnt)
+        cX = int(M["m10"] / M["m00"])
+        cY = int(M["m01"] / M["m00"])
+        listx.append(cX)
+        listy.append(cY)
+    listxy = list(zip(listx,listy))
+    listxy = np.array(listxy)
+    #print("listxy:")
+    #print(listxy)
+
+    # for every (x,y) in listxy, find the 3 nearest neighbours
+    distanceList = [] # This will be filled with point a, point b, distance
+    connections = []
+    for a in listxy:
+        aListDist = []
+        xlist = []
+        ylist = []
+        for b in listxy:
+            dist = np.linalg.norm(a-b)
+            #print("Distance is {}".format(dist))
+            if dist == 0:
+                pass
+            else:
+                myTuple = [a, b, dist]
+                distanceList.append(myTuple)
+                aListDist.append(dist)
+                xlist.append(b[0])
+                ylist.append(b[1])
+        aDists = list(zip(aListDist, xlist, ylist))
+        sort = sorted(aDists, key=lambda second: second[0])
+        sort = np.array(sort)
+        print("Joining a({}, {}) and b({}, {}) distance {}".format(a[0], a[1], sort[0,1], sort[0,2], sort[0,0]))
+        # check for duplications and go for next nearest neighbour if there is a duplication
+        idx = 0
+        myTuple = (a[0], a[1], sort[idx,1], sort[idx,2])
+        myReverseTuple = (sort[idx,1], sort[idx,2], a[0], a[1])
+        while (myReverseTuple in connections):
+            idx = idx + 1
+            if idx < len(sort):
+                myTuple = (a[0], a[1], sort[idx,1], sort[idx,2])
+                myReverseTuple = (sort[idx,1], sort[idx,2], a[0], a[1])
+            else:
+                myTuple = null
+                print("No other point found?")
+            print("Found a duplicate, choosing another point")
+        if myTuple:
+            connections.append(myTuple)
+
+    #connections = np.array(connections)
+    if len(connections) != len(set(connections)):
+        print("There were some duplicates in the list?")
+    for cn in connections:
+        cv2.line(img, (cn[0],cn[1]), (int(cn[2]), int(cn[3])), (0,0,255), 2)
+
+
+
+
+    print("Dots number: {}".format(len(xcnts)))
+    #Dots number: 23
+    return img
+
 
 def hp_filter(img, binaryMask=False):
     #Greyscale it
@@ -162,13 +250,14 @@ def grabCut(img, binaryMask=False):
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
     if binaryMask:
         img = np.where((mask == 2) | (mask == 0), 0, 255).astype('uint8')
+        img = repeatChannelsx3(img)
     else:
         img = img * mask2[:, :, np.newaxis]
     return img
 
 def grabCut2(img, binaryMask=False):
     # First, use the morphological filter to produce a mask2
-    morphMask = morphFilter(img, True)
+    morphMask = morphFilter(img, True, 16)
     properMask = prepGrabCutMask(morphMask)
 
     mask = np.zeros(img.shape[:2], np.uint8)
@@ -181,6 +270,7 @@ def grabCut2(img, binaryMask=False):
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
     if binaryMask:
         img = np.where((mask == 2) | (mask == 0), 0, 255).astype('uint8')
+        img = repeatChannelsx3(img)
     else:
         img = img * mask2[:, :, np.newaxis]
     return img
@@ -204,16 +294,13 @@ def prepGrabCutMask(mask):
     #showImage(repeatChannelsx3(myMask2))
 
     properMask = myMask2.copy()
-    #properMask[myMask2 == 255] = 1
-    #properMask[myMask2 == 125] = 0
-    #properMask[myMask2 == 0] = 0
     properMask[myMask2 > 0] = cv2.GC_PR_FGD
     properMask[myMask2 == 255] = cv2.GC_FGD
     properMask[myMask2 == 0] = cv2.GC_BGD
     return np.uint8(properMask)
 
 
-def morphFilter(img, binaryMask=False):
+def morphFilter(img, binaryMask=False, dims=3):
     #Greyscale it
     img_gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # Normalise the greyscale
@@ -223,7 +310,7 @@ def morphFilter(img, binaryMask=False):
 
     ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
     # noise removal
-    kernel = np.ones((3,3),np.uint8)
+    kernel = np.ones((dims,dims),np.uint8)
     opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
     # sure background area
     sure_bg = cv2.dilate(opening,kernel,iterations=3)
@@ -275,8 +362,30 @@ def convolve(image, kernel):
 def getTrichomeMask(img, binaryMask=False):
     #img_back = hp_filter(img, binaryMask)
     img_back = grabCut2(img, binaryMask)
-    #img_back = morphFilter(img, binaryMask)
+    #img_back = morphFilter(img, binaryMask, 3)
     return img_back
+
+def shapeDetection(img, bin_1c):
+    print(img.shape)
+    doHough = False
+    if doHough:
+        edges = cv2.Canny(bin_1c, 50, 200)
+        # Detect points that form a line
+        minLineLength = 10
+        maxLineGap = 25
+        lines = cv2.HoughLinesP(edges,1,np.pi/180,10,minLineLength,maxLineGap)
+        # Draw lines on the image
+        for line in lines:
+            print("A line!")
+            x1, y1, x2, y2 = line[0]
+            cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 3)
+        return img
+
+    dist = cv2.distanceTransform(bin_1c, cv2.DIST_L2, 3)
+    # so we can visualize and threshold it
+    cv2.normalize(dist, dist, 0, 1.0, cv2.NORM_MINMAX)
+    #cv2.imshow('Distance Transform Image', dist)
+    #showImage(repeatChannelsx3(dist))
 
 
 
@@ -284,7 +393,10 @@ def getTrichomeMask(img, binaryMask=False):
 
 if __name__ == "__main__":
     imageNames = ["aphaniz_503.tiff", "aphaniz_558.tiff", "pabefore_17.png", "pabefore_1023.png", "pabefore_1396.png"]
-    imageName = "aphaniz_503.tiff" # 503 has 45 dots by counting
+    imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
+    countingDots = False
+    joiningDots = True
+    gettingTrichomes = False
     for imageName in imageNames:
         #img = skimage.io.imread(imageName)
         imageBaseName = os.path.splitext(imageName)[0]
@@ -295,15 +407,25 @@ if __name__ == "__main__":
         #showImage(img)
         #skimage.io.imsave("test.png", img)
 
-        imgDots = getDotMask(img)
-        countDots(imgDots)
+        if countingDots:
+            imgDots = getDotMask(img)
+            countDots(imgDots)
+            #showImage(imgDots)
+            skimage.io.imsave("{}_dots.png".format(imageBaseName), imgDots, check_contrast=False)
+        if joiningDots:
+            imgDots = getDotMask(img)
+            imgDots = joinDots(imgDots)
+            #showImage(imgDots)
+            skimage.io.imsave("{}_dotsjoined.png".format(imageBaseName), imgDots, check_contrast=False)
 
-        #showImage(imgDots)
-        skimage.io.imsave("{}_dots.png".format(imageBaseName), imgDots, check_contrast=False)
-
-        imgTrichome = getTrichomeMask(img_mat)
-        # convert to rgb from bgr - why does opencv use BGR???
-        imgTrichome_rgb = imgTrichome.copy()
-        imgTrichome_rgb[:, :, 0] = imgTrichome[:, :, 2]
-        imgTrichome_rgb[:, :, 2] = imgTrichome[:, :, 0]
-        skimage.io.imsave("{}_trichome.png".format(imageBaseName), imgTrichome_rgb, check_contrast=False)
+        if gettingTrichomes:
+            binaryMask = True
+            imgTrichome = getTrichomeMask(img_mat, binaryMask=binaryMask)
+            # convert to rgb from bgr - why does opencv use BGR???
+            imgTrichome_rgb = imgTrichome.copy()
+            imgTrichome_rgb[:, :, 0] = imgTrichome[:, :, 2]
+            imgTrichome_rgb[:, :, 2] = imgTrichome[:, :, 0]
+            skimage.io.imsave("{}_trichome.png".format(imageBaseName), imgTrichome_rgb, check_contrast=False)
+            bin_1c = imgTrichome[:, :, 0]
+            img_lines = shapeDetection(img_mat, bin_1c)
+            skimage.io.imsave("{}_houghlines.png".format(imageBaseName), img_lines, check_contrast=False)
