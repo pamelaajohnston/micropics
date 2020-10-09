@@ -167,46 +167,97 @@ def joinDots(img):
     # for every (x,y) in listxy, find the nearest neighbours and connect to them
     distanceList = [] # This will be filled with point a, point b, distance
     connections = []
-    for a in listxy:
-        aListDist = []
-        xlist = []
-        ylist = []
-        for b in listxy:
-            dist = np.linalg.norm(a-b)
-            #print("Distance is {}".format(dist))
-            if dist == 0:
-                pass
-            else:
-                myTuple = [a, b, dist]
-                distanceList.append(myTuple)
-                aListDist.append(dist)
-                xlist.append(b[0])
-                ylist.append(b[1])
-        aDists = list(zip(aListDist, xlist, ylist))
-        sort = sorted(aDists, key=lambda second: second[0])
-        sort = np.array(sort)
-        # check for duplications and go for next nearest neighbour if there is a duplication
-        idx = 0
-        b = int(sort[idx,1]), int(sort[idx,2])
-        # Let's always organise the tuple from left to right, top to bottom
-        myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
-        #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
-        print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
-        while (myTuple in connections):
-            idx = idx + 1
-            if idx < len(sort):
-                myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
-                #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
-                print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
-            else:
-                myTuple = null
-                print("No other point found?")
-        if myTuple:
+    onePoint = False
+    if onePoint:
+        for a in listxy:
+            aListDist = []
+            xlist = []
+            ylist = []
+            for b in listxy:
+                dist = np.linalg.norm(a-b)
+                #print("Distance is {}".format(dist))
+                if dist == 0:
+                    pass
+                else:
+                    myTuple = [a, b, dist]
+                    distanceList.append(myTuple)
+                    aListDist.append(dist)
+                    xlist.append(b[0])
+                    ylist.append(b[1])
+            aDists = list(zip(aListDist, xlist, ylist))
+            sort = sorted(aDists, key=lambda second: second[0])
+            sort = np.array(sort)
+            # check for duplications and go for next nearest neighbour if there is a duplication
+            idx = 0
+            b = int(sort[idx,1]), int(sort[idx,2])
+            # Let's always organise the tuple from left to right, top to bottom
+            myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
+            #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
+            print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
+            while (myTuple in connections):
+                idx = idx + 1
+                if idx < len(sort):
+                    myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
+                    #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
+                    print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
+                else:
+                    myTuple = null
+                    print("No other point found?")
+            if myTuple:
+                connections.append(myTuple)
+        else: # join the nearest two neighbours that form the most straight line with a
+        for a in listxy:
+            aListDist = []
+            xlist = []
+            ylist = []
+            for b in listxy:
+                dist = np.linalg.norm(a-b)
+                #print("Distance is {}".format(dist))
+                if dist == 0:
+                    pass
+                else:
+                    myTuple = [a, b, dist]
+                    distanceList.append(myTuple)
+                    aListDist.append(dist)
+                    xlist.append(b[0])
+                    ylist.append(b[1])
+            aDists = list(zip(aListDist, xlist, ylist))
+            sort = sorted(aDists, key=lambda second: second[0])
+            sort = np.array(sort)
+            # check for duplications and go for next nearest neighbour if there is a duplication
+            idx = 0
+            maxidx = 5 # only sort through the top 5 nearest neighbours, I think.
+            pairsList = []
+            for i in range(0, maxidx):
+                for j in range(0, maxidx):
+                    if i != j:
+                        pairsList.append((i, j))
+            minDiff = 1920
+            c1 = a
+            c2 = a
+            for pointPair in pairsList:
+                idx1 = pointPair[0]
+                idx2 = pointPair[1]
+                b1 = int(sort[idx1,1]), int(sort[idx1,2])
+                dist_atob1 = sort[idx1, 0]
+                b2 = int(sort[idx2,1]), int(sort[idx2,2])
+                dist_atob2 = sort[idx2, 0]
+                dist_b1tob2 = np.linalg.norm(b1-b2)
+                if dist_b1tob2 != 0:
+                    diff = abs((dist_atob1 + dist_atob2) - dist_b1tob2)
+                    if diff < minDiff:
+                        minDiff = diff
+                        c1 = b1
+                        c2 = b2
+
+            myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(c1[0]), int(c1[1]))
+            connections.append(myTuple)
+            myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(c2[0]), int(c2[1]))
             connections.append(myTuple)
 
     #connections = np.array(connections)
     if len(connections) != len(set(connections)):
-        print("There were some duplicates in the list?")
+        print("There were some duplicates in the list: {} vs ".format(len(connections), len(set(connections))))
     for cn in connections:
         cv2.line(img, (cn[0],cn[1]), (int(cn[2]), int(cn[3])), (0,0,255), 2)
 
