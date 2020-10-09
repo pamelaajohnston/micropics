@@ -113,6 +113,19 @@ def sortOutTwoPoints(x0, y0, x1, y1):
             myTuple = myReverseTuple
     return myTuple
 
+def findRightAndDownNeighbour(ax, ay, idx, listb):
+    bx = listb[idx, 1]
+    by = listb[idx, 2]
+
+    while (bx < ax) & (by < ay):
+        idx = idx + 1
+        if idx > len(listb):
+            bx = ax
+            by = ay
+        else:
+            bx = listb[idx, 1]
+            by = listb[idx, 2]
+    return (ax, ay, bx, by)
 
 def joinDots(img):
     #print(img.shape)
@@ -151,7 +164,7 @@ def joinDots(img):
     #print("listxy:")
     #print(listxy)
 
-    # for every (x,y) in listxy, find the 3 nearest neighbours
+    # for every (x,y) in listxy, find the nearest neighbours and connect to them
     distanceList = [] # This will be filled with point a, point b, distance
     connections = []
     for a in listxy:
@@ -176,12 +189,14 @@ def joinDots(img):
         idx = 0
         b = int(sort[idx,1]), int(sort[idx,2])
         # Let's always organise the tuple from left to right, top to bottom
-        myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
+        #myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
+        myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
         print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
         while (myTuple in connections):
             idx = idx + 1
             if idx < len(sort):
-                myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
+                #myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
+                myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
                 print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
             else:
                 myTuple = null
