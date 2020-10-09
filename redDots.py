@@ -189,14 +189,14 @@ def joinDots(img):
         idx = 0
         b = int(sort[idx,1]), int(sort[idx,2])
         # Let's always organise the tuple from left to right, top to bottom
-        #myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
-        myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
+        myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
+        #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
         print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
         while (myTuple in connections):
             idx = idx + 1
             if idx < len(sort):
-                #myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
-                myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
+                myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
+                #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
                 print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
             else:
                 myTuple = null
@@ -422,6 +422,7 @@ def shapeDetection(img, bin_1c):
 if __name__ == "__main__":
     imageNames = ["aphaniz_503.tiff", "aphaniz_558.tiff", "pabefore_17.png", "pabefore_1023.png", "pabefore_1396.png"]
     imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
+    imageNames = ["aphaniz_558.tiff"] # 503 has 45 dots by counting
     countingDots = False
     joiningDots = True
     gettingTrichomes = False
