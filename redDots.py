@@ -205,7 +205,7 @@ def joinDots(img):
                     print("No other point found?")
             if myTuple:
                 connections.append(myTuple)
-        else: # join the nearest two neighbours that form the most straight line with a
+    else: # join the nearest two neighbours that form the most straight line with a
         for a in listxy:
             aListDist = []
             xlist = []
@@ -229,26 +229,35 @@ def joinDots(img):
             maxidx = 5 # only sort through the top 5 nearest neighbours, I think.
             pairsList = []
             for i in range(0, maxidx):
-                for j in range(0, maxidx):
+                for j in range(i, maxidx):
                     if i != j:
                         pairsList.append((i, j))
-            minDiff = 1920
+            print(pairsList)
+            minDiff = 50.0
+            maxCell = 50.0
             c1 = a
             c2 = a
             for pointPair in pairsList:
                 idx1 = pointPair[0]
                 idx2 = pointPair[1]
-                b1 = int(sort[idx1,1]), int(sort[idx1,2])
+                print(a)
+                b1 = np.asarray([int(sort[idx1,1]), int(sort[idx1,2])])
+                print(b1)
                 dist_atob1 = sort[idx1, 0]
-                b2 = int(sort[idx2,1]), int(sort[idx2,2])
+                b2 = np.asarray([int(sort[idx2,1]), int(sort[idx2,2])])
                 dist_atob2 = sort[idx2, 0]
                 dist_b1tob2 = np.linalg.norm(b1-b2)
-                if dist_b1tob2 != 0:
-                    diff = abs((dist_atob1 + dist_atob2) - dist_b1tob2)
-                    if diff < minDiff:
-                        minDiff = diff
-                        c1 = b1
-                        c2 = b2
+                if (dist_atob1 < maxCell) & (dist_atob1 < maxCell):
+                    if dist_b1tob2 != 0:
+                        print("points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
+                        diff = abs((dist_atob1 + dist_atob2) - dist_b1tob2)
+                        print("distances: b1 to b2: {}, a to b1: {}, a to b2: {}, diff: {}".format(dist_b1tob2, dist_atob1, dist_atob2, diff))
+                        if diff < minDiff:
+                            minDiff = diff
+                            c1 = b1
+                            c2 = b2
+                            print("best points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
+
 
             myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(c1[0]), int(c1[1]))
             connections.append(myTuple)
@@ -259,6 +268,7 @@ def joinDots(img):
     if len(connections) != len(set(connections)):
         print("There were some duplicates in the list: {} vs ".format(len(connections), len(set(connections))))
     for cn in connections:
+        print(cn)
         cv2.line(img, (cn[0],cn[1]), (int(cn[2]), int(cn[3])), (0,0,255), 2)
 
 
