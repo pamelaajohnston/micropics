@@ -7,6 +7,8 @@ import numpy as np
 from PIL import Image
 import os
 from skimage.exposure import rescale_intensity
+import argparse
+import shutil
 
 def showImage(image):
     plt.imshow(image, interpolation = 'bicubic')
@@ -477,6 +479,34 @@ def shapeDetection(img, bin_1c):
     #showImage(repeatChannelsx3(dist))
 
 
+def createFileList(myDir, formats=['.tif', '.png']):
+    fileList = []
+    #print(myDir)
+    for root, dirs, files in os.walk(myDir, topdown=False):
+        for name in files:
+            for format in formats:
+                if name.endswith(format):
+                    fullName = os.path.join(root, name)
+                    fileList.append(fullName)
+    return fileList
+
+def createFileList_noDirs(myDir, format='.tif', format2='.png'):
+    fileList = []
+    #print(myDir)
+    for files in os.walk(myDir, topdown=False):
+        for name in files:
+            if name.endswith(format):
+                fullName = os.path.join(root, name)
+                fileList.append(fullName)
+            if name.endswith(format2):
+                fullName = os.path.join(root, name)
+                fileList.append(fullName)
+    return fileList
+
+def makeFreshDir(dirname):
+    if os.path.exists(dirname):
+        shutil.rmtree(dirname)
+    os.makedirs(dirname)
 
 
 
@@ -484,30 +514,72 @@ if __name__ == "__main__":
     imageNames = ["aphaniz_503.tiff", "aphaniz_558.tiff", "pabefore_17.png", "pabefore_1023.png", "pabefore_1396.png"]
     imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
     imageNames = ["aphaniz_558.tiff"] # 503 has 45 dots by counting
+    savingDotsPic = False
     countingDots = False
-    joiningDots = True
+    joiningDots = False
     gettingTrichomes = False
+    destDir = "./"
+
+    parser = argparse.ArgumentParser(description='Does ground truth extraction, and binary mask generation for identifying trichomes')
+    parser.add_argument("-s", "--source", help="the source directory (trichome pictures marked with red dots in the cells)")
+    parser.add_argument("-d", "--dest",   help="the destination directory (will make it if it doesn't exist)")
+    parser.add_argument("-r", "--dotsPics", help="generate red dot pictures", action='store_true')
+    parser.add_argument("-b", "--binaryTrichomeMasks", help="binary trichome masks", action='store_true')
+    parser.add_argument("-c", "--countDots", help="count the dots", action='store_true')
+    parser.add_argument("-j", "--joinDots", help="join the dots", action='store_true')
+
+    args = parser.parse_args()
+
+    if args.source:
+        print("Getting pictures from {}".format(args.source))
+        imageNames = createFileList(args.source)
+        print(imageNames)
+    if args.dest:
+        destDir = args.dest
+        print("Storing pictures to {}. Note that this is the base directory. Red dots pictures will go into a dir called redDots etc".format(args.dest))
+
+    # Set the variables and create the necessary directories.
+    if args.dotsPics:
+        savingDotsPic = True
+        redDotsDir = os.path.join(destDir, "redDots")
+        makeFreshDir(redDotsDir)
+    if args.binaryTrichomeMasks:
+        gettingTrichomes = True
+        trichomesDir = os.path.join(destDir, "trichomes")
+        makeFreshDir(trichomesDir)
+    if args.countDots:
+        countingDots = True
+    if args.joinDots:
+        joiningDots = True
+        joiningDotsDir = os.path.join(destDir, "joiningDots")
+        makeFreshDir(joiningDotsDir)
+
+
+
     for imageName in imageNames:
         #img = skimage.io.imread(imageName)
-        imageBaseName = os.path.splitext(imageName)[0]
+        imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
+        print(imageBaseName)
+
         img_mat = cv2.imread(imageName)
         img = np.asarray(img_mat)
         height, width = img.shape[:2]
         print("Image {} is {} by {}".format(imageName, width, height))
         #showImage(img)
         #skimage.io.imsave("test.png", img)
+        imgDots = getDotMask(img)
 
+        if savingDotsPic:
+            dotsName = os.path.join(redDotsDir, "{}.png".format(imageBaseName))
+            skimage.io.imsave(dotsName, imgDots, check_contrast=False)
         if countingDots:
-            imgDots = getDotMask(img)
             countDots(imgDots)
             #showImage(imgDots)
-            skimage.io.imsave("{}_dots.png".format(imageBaseName), imgDots, check_contrast=False)
         if joiningDots:
-            imgDots = getDotMask(img)
             imgDots = joinDots(imgDots)
             #showImage(imgDots)
-            skimage.io.imsave("{}_dotsjoined.png".format(imageBaseName), imgDots, check_contrast=False)
-
+            joinedDotsName = os.path.join(joiningDotsDir, "{}.png".format(imageBaseName))
+            skimage.io.imsave(joinedDotsName, imgDots, check_contrast=False)
         if gettingTrichomes:
             binaryMask = True
             imgTrichome = getTrichomeMask(img_mat, binaryMask=binaryMask)
@@ -515,7 +587,10 @@ if __name__ == "__main__":
             imgTrichome_rgb = imgTrichome.copy()
             imgTrichome_rgb[:, :, 0] = imgTrichome[:, :, 2]
             imgTrichome_rgb[:, :, 2] = imgTrichome[:, :, 0]
-            skimage.io.imsave("{}_trichome.png".format(imageBaseName), imgTrichome_rgb, check_contrast=False)
-            bin_1c = imgTrichome[:, :, 0]
-            img_lines = shapeDetection(img_mat, bin_1c)
-            skimage.io.imsave("{}_houghlines.png".format(imageBaseName), img_lines, check_contrast=False)
+            trichomeName = os.path.join(trichomesDir, "{}.png".format(imageBaseName))
+            skimage.io.imsave(trichomeName, imgTrichome_rgb, check_contrast=False)
+            if doingHoughLines:
+                bin_1c = imgTrichome[:, :, 0]
+                img_lines = shapeDetection(img_mat, bin_1c)
+                houghName = os.path.join(trichomesDir, "{}_hough.png".format(imageBaseName))
+                skimage.io.imsave(houghName, img_lines, check_contrast=False)
