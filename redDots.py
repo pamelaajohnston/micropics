@@ -490,18 +490,6 @@ def createFileList(myDir, formats=['.tif', '.png']):
                     fileList.append(fullName)
     return fileList
 
-def createFileList_noDirs(myDir, format='.tif', format2='.png'):
-    fileList = []
-    #print(myDir)
-    for files in os.walk(myDir, topdown=False):
-        for name in files:
-            if name.endswith(format):
-                fullName = os.path.join(root, name)
-                fileList.append(fullName)
-            if name.endswith(format2):
-                fullName = os.path.join(root, name)
-                fileList.append(fullName)
-    return fileList
 
 def makeFreshDir(dirname):
     if os.path.exists(dirname):
