@@ -6,6 +6,7 @@ from keras.preprocessing.image import img_to_array
 from keras.preprocessing.image import load_img
 from numpy import savez_compressed
 import os
+import argparse
 
 # load and scale the maps dataset ready for training
 def createFileList(myDir, formats=['.tif', '.png']):
@@ -52,19 +53,35 @@ if __name__ == "__main__":
     # dataset path
     path_src = '../data/planktothrixCrop/redDots'
     path_tar = '../data/planktothrixCrop/labelledPics'
+    filename = 'trichomes_256.npz'
+
+    parser = argparse.ArgumentParser(description="Takes a folder of images and creates patches from them")
+    parser.add_argument("-s", "--source", help="the source directory")
+    parser.add_argument("-t", "--target",   help="the directory with the target files")
+    parser.add_argument("-o", "--output",   help="the output file")
+    args = parser.parse_args()
+
+    if args.source:
+        path_src = args.source
+    if args.target:
+        path_tar = args.target
+    if args.output:
+        filename = args.output
+
     # load dataset
     [src_images, tar_images] = load_images(path_src, path_tar)
     print('Loaded: ', src_images.shape, tar_images.shape)
     # save as compressed numpy array
-    filename = 'trichomes_256.npz'
     savez_compressed(filename, src_images, tar_images)
     print('Saved dataset: ', filename)
+
+    quit()
 
     # load the prepared dataset
     from numpy import load
     from matplotlib import pyplot
     # load the dataset
-    data = load('trichomes_256.npz')
+    data = load(filename)
     src_images, tar_images = data['arr_0'], data['arr_1']
     print('Loaded: ', src_images.shape, tar_images.shape)
     # plot source images
