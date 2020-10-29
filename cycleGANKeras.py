@@ -255,9 +255,6 @@ def train(d_model_A, d_model_B, g_model_AtoB, g_model_BtoA, c_model_AtoB, c_mode
         dB_loss2 = d_model_B.train_on_batch(X_fakeB, y_fakeB)
         # summarize performance
         print('>%d, dA[%.3f,%.3f] dB[%.3f,%.3f] g[%.3f,%.3f]' % (i+1, dA_loss1,dA_loss2, dB_loss1,dB_loss2, g_loss1,g_loss2))
-        summarize_performance(i, g_model_AtoB, trainA, 'AtoB', destDir=destDir)
-        # plot B->A translation
-        summarize_performance(i, g_model_BtoA, trainB, 'BtoA', destDir=destDir)
         # evaluate the model performance every so often
         if (i+1) % (bat_per_epo * 1) == 0:
             # plot A->B translation
