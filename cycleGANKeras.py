@@ -176,7 +176,7 @@ def save_models(step, g_model_AtoB, g_model_BtoA, destDir=""):
     print('>Saved: %s and %s' % (filename1, filename2))
 
 # generate samples and save as a plot and save the model
-def summarize_performance(step, g_model, trainX, name, n_samples=5, destDir=""):
+def summarize_performance(step, g_model, trainX, name, n_samples=6, destDir=""):
     # select a sample of input images
     X_in, _ = generate_real_samples(trainX, n_samples, 0)
     # generate translated images
