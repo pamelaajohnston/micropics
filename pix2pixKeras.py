@@ -17,6 +17,9 @@ from keras.layers import Dropout
 from keras.layers import BatchNormalization
 from keras.layers import LeakyReLU
 from matplotlib import pyplot
+import os
+import argparse
+import shutil
 
 # define the discriminator model
 def define_discriminator(image_shape):
@@ -168,7 +171,7 @@ def generate_fake_samples(g_model, samples, patch_shape):
 	return X, y
 
 # generate samples and save as a plot and save the model
-def summarize_performance(step, g_model, dataset, n_samples=3):
+def summarize_performance(step, g_model, dataset, n_samples=6, destDir=""):
 	# select a sample of input images
 	[X_realA, X_realB], _ = generate_real_samples(dataset, n_samples, 1)
 	# generate a batch of fake samples
@@ -194,15 +197,17 @@ def summarize_performance(step, g_model, dataset, n_samples=3):
 		pyplot.imshow(X_realB[i])
 	# save plot to file
 	filename1 = 'plot_%06d.png' % (step+1)
+	filename1 = os.path.join(destDir, filename1)
 	pyplot.savefig(filename1)
 	pyplot.close()
 	# save the generator model
 	filename2 = 'model_%06d.h5' % (step+1)
+	filename2 = os.path.join(destDir, filename2)
 	g_model.save(filename2)
 	print('>Saved: %s and %s' % (filename1, filename2))
 
 # train pix2pix models
-def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1):
+def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir=""):
 	# determine the output square shape of the discriminator
 	n_patch = d_model.output_shape[1]
 	# unpack dataset
@@ -227,17 +232,36 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1):
 		print('>%d, d1[%.3f] d2[%.3f] g[%.3f]' % (i+1, d_loss1, d_loss2, g_loss))
 		# summarize model performance
 		if (i+1) % (bat_per_epo * 10) == 0:
-			summarize_performance(i, g_model, dataset)
+			summarize_performance(i, g_model, dataset, destDir=destDir)
 
-# load image data
-dataset = load_real_samples('trichomes_256.npz')
-print('Loaded', dataset[0].shape, dataset[1].shape)
-# define input shape based on the loaded dataset
-image_shape = dataset[0].shape[1:]
-# define the models
-d_model = define_discriminator(image_shape)
-g_model = define_generator(image_shape)
-# define the composite model
-gan_model = define_gan(g_model, d_model, image_shape)
-# train model
-train(d_model, g_model, gan_model, dataset)
+def makeFreshDir(dirname):
+    if os.path.exists(dirname):
+        shutil.rmtree(dirname)
+    os.makedirs(dirname)
+
+if __name__ == "__main__":
+    input_filename = 'trichomes_256.npz'
+    parser = argparse.ArgumentParser(description="Trains a pix2pix GAN on a given dataset")
+    parser.add_argument("-s", "--source", help="the source dataset (npz format, get it from generatePictures.py)")
+    parser.add_argument("-d", "--dest",   help="the directory that will hold the generated files")
+    args = parser.parse_args()
+
+    if args.source:
+        input_filename = args.source
+    if args.dest:
+        destDir = args.dest
+        print("Storing patch pictures to {}.".format(args.dest))
+        makeFreshDir(destDir)
+
+    # load image data
+    dataset = load_real_samples(input_filename)
+    print('Loaded', dataset[0].shape, dataset[1].shape)
+    # define input shape based on the loaded dataset
+    image_shape = dataset[0].shape[1:]
+    # define the models
+    d_model = define_discriminator(image_shape)
+    g_model = define_generator(image_shape)
+    # define the composite model
+    gan_model = define_gan(g_model, d_model, image_shape)
+    # train model
+    train(d_model, g_model, gan_model, dataset, destDir=destDir)
