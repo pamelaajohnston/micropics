@@ -167,6 +167,77 @@ def modelArchitecture(input_shape, num_classes, architectureNumber):
         model.add(Activation('relu'))
         model.add(Dense(num_classes))
         model.add(Activation('softmax'))
+    if architectureNumber == 4:
+        # previous stride of 1 too big, changed to stride 4
+        modelName = "MNIST_99.25Simple_Stride2"
+        model = Sequential()
+        #model.add(Conv2D(32, kernel_size=(3, 3),
+        #         activation='relu',
+        #         input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(2, 2), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        #model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        #model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        #model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
+    if architectureNumber == 5:
+        # previous stride of 1 too big, changed to stride 4
+        modelName = "MNIST_99.25Simple_Stride4"
+        model = Sequential()
+        #model.add(Conv2D(32, kernel_size=(3, 3),
+        #         activation='relu',
+        #         input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(4, 4), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        #model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(Conv2D(64, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        #model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        #model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
+    if architectureNumber == 6:
+        # previous stride of 1 too big, changed to stride 4
+        modelName = "MNIST_99.25Simple_Stride1"
+        model = Sequential()
+        #model.add(Conv2D(32, kernel_size=(3, 3),
+        #         activation='relu',
+        #         input_shape=input_shape))
+        model.add(Conv2D(32, (3, 3), strides=(1, 1), input_shape=input_shape))
+        model.add(Activation('relu'))
+
+        #model.add(Conv2D(64, (3, 3), activation='relu'))
+        model.add(Conv2D(32, (3, 3)))
+        model.add(Activation('relu'))
+
+        model.add(MaxPooling2D(pool_size=(2, 2)))
+        #model.add(BatchNormalization())
+        model.add(Dropout(0.25))
+        model.add(Flatten())
+        model.add(Dense(128, activation='relu'))
+        model.add(Dropout(0.5))
+        #model.add(BatchNormalization())
+        model.add(Dense(num_classes, activation='softmax'))
+
+    print(modelName)
+    print(model.summary())
+    print("Number of parameters")
+    print(model.count_params())
     return model, modelName
 
 def createFileList(myDir, format='.png'):
@@ -187,6 +258,8 @@ def processImage(inFile, outFile, processImageMethod, dim=128):
         return processImage2(inFile, outFile, dim)
     if processImageMethod == 3:
         return processImage3(inFile, outFile, dim)
+    if processImageMethod == 4:
+        return processImage4(inFile, outFile, dim)
 
 
 def processImage0(inFile, outDir):
@@ -218,6 +291,16 @@ def processImage3(inFile, outDir, dim=128):
     outName = os.path.join(outDir, b)
     im = cv2.imread(inFile, 0)
     im_norm = customFilter(im)
+    size = dim, dim
+    resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
+    cv2.imwrite(outName, resized)
+
+def processImage4(inFile, outDir, dim=128):
+    #print("High pass filter")
+    d, b = os.path.split(inFile)
+    outName = os.path.join(outDir, b)
+    im = cv2.imread(inFile, 0)
+    im_norm = customFilter2(im)
     size = dim, dim
     resized = cv2.resize(im_norm, size, interpolation=cv2.INTER_LANCZOS4)
     cv2.imwrite(outName, resized)
@@ -256,6 +339,18 @@ def customFilter(img):
     threshold = myThres
     upper = 0
     img_filtered = np.where(img_back>threshold, upper, img)
+    return img_filtered
+
+def customFilter2(img):
+    gray = img
+    ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    # noise removal
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
+    # sure background area
+    sure_bg = cv2.dilate(opening,kernel,iterations=3)
+    upper = 0
+    img_filtered = np.where(sure_bg==0, upper, img)
     return img_filtered
 
 def splitIntoTestTrain(src, dst, processImageMethod=0):
@@ -370,9 +465,9 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--before_gen", help="the before treatment directory")
     parser.add_argument("-a", "--after_gen",  help="the after treatment directory")
     parser.add_argument("-d", "--data_dir",   help="the directory to store the data")
-    parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter", type=int)
+    parser.add_argument("-f", "--process_files",   help="0: existing; 1: resize only; 2: normalize; 3: hp filter 4: morph", type=int)
     parser.add_argument("-g", "--data_gen",   help="the datagen type (0 for mine, 1 for Ismaels)", type=int)
-    parser.add_argument("-m", "--model_number",   help="network number: 0:4x4 network; 1:LeNet5ish; 2:VGG16; 3:AlexNet", type=int)
+    parser.add_argument("-m", "--model_number",   help="network number: 0:4x4 network; 1:LeNet5ish; 2:VGG16; 3:AlexNet 4:MNIST_99", type=int)
     parser.add_argument("-o", "--optimiser",   help="one of sgd, rmsprop, adam, adagrad")
     parser.add_argument("-e", "--epochs",   help="Number of epochs to run for", type=int)
     args = parser.parse_args()
@@ -546,7 +641,7 @@ if __name__ == "__main__":
             epochs=epochs,
             validation_data=test_it,
             validation_steps=valSteps,
-            callbacks=[early]
+            #callbacks=[early]
             )
 
         probabilities = model.predict_generator(generator=test_it)
