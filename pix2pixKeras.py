@@ -1,3 +1,4 @@
+#Mostly from: https://machinelearningmastery.com/how-to-develop-a-pix2pix-gan-for-image-to-image-translation/
 # example of pix2pix gan for satellite to map image-to-image translation
 from numpy import load
 from numpy import zeros
