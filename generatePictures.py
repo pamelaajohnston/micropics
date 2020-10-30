@@ -49,6 +49,31 @@ def load_images(path_src, path_tar, size=(256,256) ):
 
     return [asarray(src_list), asarray(tar_list)]
 
+# load all images in a directory into memory - tar = target!
+def load_images2(path_src, path_tar, size=(256,256) ):
+    src_list = list()
+    tar_list = list()
+
+    src_names = createFileList(path_src)
+    for src_filename in src_names:
+        src_basename = os.path.splitext(os.path.basename(src_filename))[0]
+        tar_filename = os.path.join(path_tar, "{}.png".format(src_basename))
+        # Check tar file exists
+        if os.path.isfile(tar_filename):
+            # load and resize the image
+            src_pixels = load_img(src_filename, target_size=size)
+            tar_pixels = load_img(tar_filename, target_size=size)
+            # convert to numpy array
+            src_img = img_to_array(src_pixels)
+            tar_img = img_to_array(tar_pixels)
+            # split into satellite and map
+            src_list.append(src_img)
+            tar_list.append(tar_img)
+        else:
+            print("Source file for {} but no corresponding target file".format(src_basename))
+
+    return [asarray(src_list), asarray(tar_list)]
+
 if __name__ == "__main__":
     # dataset path
     path_src = '../data/planktothrixCrop/redDots'
@@ -69,7 +94,7 @@ if __name__ == "__main__":
         filename = args.output
 
     # load dataset
-    [src_images, tar_images] = load_images(path_src, path_tar)
+    [src_images, tar_images] = load_images2(path_src, path_tar)
     print('Loaded: ', src_images.shape, tar_images.shape)
     # save as compressed numpy array
     savez_compressed(filename, src_images, tar_images)
