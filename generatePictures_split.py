@@ -105,9 +105,9 @@ if __name__ == "__main__":
     if args.target:
         path_tar = args.target
     if args.output1:
-        filename1 = args.output
+        filename1 = args.output1
     if args.output2:
-        filename2 = args.output
+        filename2 = args.output2
 
     # load dataset
     [src_images1, tar_images1, src_images2, tar_images2] = load_images2(path_src, path_tar)
