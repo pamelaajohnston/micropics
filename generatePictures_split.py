@@ -51,11 +51,15 @@ def load_images(path_src, path_tar, size=(256,256) ):
 
 # load all images in a directory into memory - tar = target!
 def load_images2(path_src, path_tar, size=(256,256) ):
-    src_list = list()
-    tar_list = list()
+    src_list1 = list()
+    tar_list1 = list()
+    src_list2 = list()
+    tar_list2 = list()
 
     src_names = createFileList(path_src)
-    for src_filename in src_names:
+    half_way = len(src_names) // 2
+
+    for i, src_filename in enumerate(src_names):
         src_basename = os.path.splitext(os.path.basename(src_filename))[0]
         tar_filename = os.path.join(path_tar, "{}.png".format(src_basename))
         # Check tar file exists
@@ -67,38 +71,52 @@ def load_images2(path_src, path_tar, size=(256,256) ):
             src_img = img_to_array(src_pixels)
             tar_img = img_to_array(tar_pixels)
             # split into satellite and map
-            src_list.append(src_img)
-            tar_list.append(tar_img)
+            if i < half_way:
+                src_list1.append(src_img)
+                tar_list2.append(tar_img)
+            else:
+                src_list2.append(src_img)
+                tar_list1.append(tar_img)
         else:
             print("Source file for {} but no corresponding target file".format(src_basename))
 
-    return [asarray(src_list), asarray(tar_list)]
+    return [asarray(src_list1), asarray(tar_list1), asarray(src_list2), asarray(tar_list2)]
 
 if __name__ == "__main__":
     # dataset path
     path_src = '../data/planktothrixCrop/redDots'
     path_tar = '../data/planktothrixCrop/labelledPics'
-    filename = 'trichomes_256.npz'
+    filename1 = 'trichomes_256_1.npz'
+    filename2 = 'trichomes_256_2.npz'
 
-    parser = argparse.ArgumentParser(description="Takes a pile of images and turns them into an npz dataset")
+    parser = argparse.ArgumentParser(description="Takes a folder of images and creates 2 npz datasets")
     parser.add_argument("-s", "--source", help="the source directory")
     parser.add_argument("-t", "--target",   help="the directory with the target files")
-    parser.add_argument("-o", "--output",   help="the output file")
+    parser.add_argument("-o1", "--output1",   help="the first output file")
+    parser.add_argument("-o2", "--output2",   help="the second output file")
     args = parser.parse_args()
+
+    # We have "before" and "after" datasets with the same image in each.
+    # This is for CGAN so we should have different "before" and "after" images.
+    # So, we'll split them.
 
     if args.source:
         path_src = args.source
     if args.target:
         path_tar = args.target
-    if args.output:
-        filename = args.output
+    if args.output1:
+        filename1 = args.output
+    if args.output2:
+        filename2 = args.output
 
     # load dataset
-    [src_images, tar_images] = load_images2(path_src, path_tar)
-    print('Loaded: ', src_images.shape, tar_images.shape)
+    [src_images1, tar_images1, src_images2, tar_images2] = load_images2(path_src, path_tar)
+    print('Loaded: ', src_images1.shape, tar_images2.shape)
     # save as compressed numpy array
-    savez_compressed(filename, src_images, tar_images)
-    print('Saved dataset: ', filename)
+    savez_compressed(filename1, src_images1, tar_images1)
+    savez_compressed(filename2, src_images2, tar_images2)
+    print('Saved dataset: ', filename1)
+    print('Saved dataset: ', filename2)
 
     quit()
 
