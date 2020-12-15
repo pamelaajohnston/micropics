@@ -554,6 +554,8 @@ if __name__ == "__main__":
     if args.dotsPics:
         savingDotsPic = True
         redDotsDir = os.path.join(destDir, "redDots")
+        if args.enlargeDots:
+            redDotsDir = os.path.join(destDir, "enlargedDots")
         makeFreshDir(redDotsDir)
     if args.binaryTrichomeMasks:
         gettingTrichomes = True
@@ -567,7 +569,6 @@ if __name__ == "__main__":
         makeFreshDir(joiningDotsDir)
     if args.enlargeDots:
         enlargeDots = True
-
 
 
     for imageName in imageNames:
