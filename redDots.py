@@ -71,6 +71,28 @@ def getDotMask(img):
     #showImage(i)
     return i
 
+def enlargingDots(imgDots):
+    dims = 3
+    i = 6
+    kernel = np.ones((dims,dims),np.uint8)
+    kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], np.uint8)
+    imgDots = cv2.dilate(imgDots,kernel,iterations=i)
+    return imgDots
+
+def enlargingAndPruningDots(imgDots, mask):
+    dims = 3
+    i = 16
+    kernel = np.ones((dims,dims),np.uint8)
+    kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], np.uint8)
+    imgDots = cv2.dilate(imgDots,kernel,iterations=i)
+    #print(mask)
+    mymask = np.array(mask,  np.uint8)
+    invmask = mask = 255 - mask
+    greymask = mask / 2
+    imgDots = cv2.bitwise_and(imgDots, mymask)
+    imgDots = imgDots + greymask
+    return imgDots
+
 def repeatChannelsx3(img_in):
     img_in = np.reshape(img_in, (img_in.shape[0], img_in.shape[1], 1))
     img_out = np.append(img_in, img_in, axis=2)
@@ -451,8 +473,8 @@ def convolve(image, kernel):
 
 
 def getTrichomeMask(img, binaryMask=False):
-    #img_back = hp_filter(img, binaryMask)
-    img_back = grabCut2(img, binaryMask)
+    img_back = hp_filter(img, binaryMask)
+    #img_back = grabCut2(img, binaryMask)
     #img_back = morphFilter(img, binaryMask, 3)
     return img_back
 
@@ -500,12 +522,13 @@ def makeFreshDir(dirname):
 
 if __name__ == "__main__":
     imageNames = ["aphaniz_503.tiff", "aphaniz_558.tiff", "pabefore_17.png", "pabefore_1023.png", "pabefore_1396.png"]
-    imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
-    imageNames = ["aphaniz_558.tiff"] # 503 has 45 dots by counting
+    #imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
+    #imageNames = ["aphaniz_558.tiff"] # 503 has 45 dots by counting
     savingDotsPic = False
     countingDots = False
     joiningDots = False
     gettingTrichomes = False
+    enlargeDots = False
     destDir = "./"
 
     parser = argparse.ArgumentParser(description='Does ground truth extraction, and binary mask generation for identifying trichomes')
@@ -515,6 +538,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--binaryTrichomeMasks", help="binary trichome masks", action='store_true')
     parser.add_argument("-c", "--countDots", help="count the dots", action='store_true')
     parser.add_argument("-j", "--joinDots", help="join the dots", action='store_true')
+    parser.add_argument("-e", "--enlargeDots", help="enlarge the dots", action='store_true')
 
     args = parser.parse_args()
 
@@ -541,6 +565,8 @@ if __name__ == "__main__":
         joiningDots = True
         joiningDotsDir = os.path.join(destDir, "joiningDots")
         makeFreshDir(joiningDotsDir)
+    if args.enlargeDots:
+        enlargeDots = True
 
 
 
@@ -556,6 +582,12 @@ if __name__ == "__main__":
         #showImage(img)
         #skimage.io.imsave("test.png", img)
         imgDots = getDotMask(img)
+
+        if enlargeDots:
+            # Working with imgDots
+            imgTrichome = getTrichomeMask(img_mat, binaryMask=True)
+            print("Enlarging the dots")
+            imgDots = enlargingAndPruningDots(imgDots, imgTrichome)
 
         if savingDotsPic:
             dotsName = os.path.join(redDotsDir, "{}.png".format(imageBaseName))
