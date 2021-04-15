@@ -10,7 +10,7 @@ from skimage.exposure import rescale_intensity
 import argparse
 import shutil
 
-def createFileList(myDir, formats=['.tif', '.png']):
+def createFileList(myDir, formats=['.tif', '.png', '.tiff']):
     fileList = []
     #print(myDir)
     for root, dirs, files in os.walk(myDir, topdown=False):

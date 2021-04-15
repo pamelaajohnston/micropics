@@ -79,12 +79,45 @@ def enlargingDots(imgDots):
     imgDots = cv2.dilate(imgDots,kernel,iterations=i)
     return imgDots
 
-def enlargingAndPruningDots(imgDots, mask):
+def enlargingAndPruningDots_1(imgDots, mask):
     dims = 3
     i = 16
     kernel = np.ones((dims,dims),np.uint8)
     kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], np.uint8)
     imgDots = cv2.dilate(imgDots,kernel,iterations=i)
+    #print(mask)
+    mymask = np.array(mask,  np.uint8)
+    invmask = mask = 255 - mask
+    greymask = mask / 2
+    imgDots = cv2.bitwise_and(imgDots, mymask)
+    imgDots = imgDots + greymask
+    return imgDots
+
+def enlargingAndPruningDots(imgDots, mask):
+    #dims = 3
+    #i = 16 # need to calculate i...
+    #kernel = np.ones((dims,dims),np.uint8)
+    kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], np.uint8)
+    s1=10
+    s2=100
+    startingDots = countDots(imgDots, s1=10, s2=100)
+    numDots = startingDots
+    iterations = 1
+    while (numDots > (startingDots-5)):
+        #imgDots = cv2.dilate(imgDots,kernel,iterations=1)
+        #imgDots = cv2.morphologyEx(imgDots, cv2.MORPH_BLACKHAT, kernel)
+        dilation_size = 2
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilation_size + 1, 2 * dilation_size + 1),
+                                       (dilation_size, dilation_size))
+        imgDots_new = cv2.dilate(imgDots, element)
+
+        numDots = countDots(imgDots_new, s1=s1, s2=s2)
+        if (numDots > (startingDots-5)):
+            imgDots = imgDots_new
+        print("We've done {} iterations and there are {} dots".format(iterations, numDots))
+        iterations = iterations + 1
+        #s1 = s1*s1
+        s2 = s2*s2
     #print(mask)
     mymask = np.array(mask,  np.uint8)
     invmask = mask = 255 - mask
@@ -100,7 +133,7 @@ def repeatChannelsx3(img_in):
     return img_out
 
 
-def countDots(img):
+def countDots(img, s1=10, s2=100):
     #print(img.shape)
     ## threshold
     grayImage = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -114,8 +147,8 @@ def countDots(img):
     cnts = cv2.findContours(threshed, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)[-2]
     #im2, cnts, hierarchy = cv2.findContours(threshed, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     ## filter by area
-    s1= 10
-    s2 = 100
+    #s1= 10
+    #s2 = 100
     xcnts = []
     for cnt in cnts:
         a = cv2.contourArea(cnt)
@@ -124,6 +157,7 @@ def countDots(img):
             xcnts.append(cnt)
 
     print("Dots number: {}".format(len(xcnts)))
+    return len(xcnts)
     #Dots number: 23
 
 def sortOutTwoPoints(x0, y0, x1, y1):
