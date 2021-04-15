@@ -82,8 +82,6 @@ class Paint(object):
         img = img.resize((224, 224))
         img.save(f, 'png')
 
-        #self.save_as_png(f)
-
     #def choose_color(self):
     #    self.eraser_on = False
     #    self.color = askcolor(color=self.color)[1]
