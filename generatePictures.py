@@ -8,7 +8,7 @@ from numpy import savez_compressed
 import os
 import argparse
 
-# load and scale the maps dataset ready for training
+# create a list of files
 def createFileList(myDir, formats=['.tif', '.png']):
     fileList = []
     #print(myDir)

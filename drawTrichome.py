@@ -112,8 +112,8 @@ class Paint(object):
 
     def doCell(self, event):
         paint_color = self.cellColour
-        self.c.create_oval((event.x-1), (event.y-1), (event.x+1), (event.y+1), outline=paint_color,
-            fill=paint_color, width=2)
+        #self.c.create_oval((event.x-1), (event.y-1), (event.x+1), (event.y+1), outline=paint_color, fill=paint_color, width=2)
+        self.c.create_rectangle((event.x-1),(event.y-1), (event.x+1), (event.y+1), outline=paint_color, fill=paint_color)
 
 
 
