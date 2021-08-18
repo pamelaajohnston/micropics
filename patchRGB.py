@@ -92,20 +92,6 @@ def unpatchDir(source, dest, pheight, pwidth):
         #skimage.io.imsave(cropName, crop_img, check_contrast=False)
         cv2.imwrite(imageName, m)
 
-        #patchx = list(set(patchx)).sort()
-        #patchy = list(set(patchy)).sort()
-        #print(patchx)
-        #print(patchy)
-
-        #print(patchNames)
-        #patchNames0 = patchNames0.sort()
-        #print(patchNames0)
-
-        #for y in range(0, max(patchy)):
-        #    for x in range(0, max(patchx)):
-
-
-
 if __name__ == "__main__":
     pwidth = 224
     pheight = 224
