@@ -71,6 +71,20 @@ def getDotMask(img):
     #showImage(i)
     return i
 
+def getDotMaskDir(src, dst):
+    imageNames = createFileList(src)
+    for imageName in imageNames:
+        bname = os.path.splitext(os.path.basename(imageName))[0]
+        output_filename = "{}.png".format(bname)
+        output_filename = os.path.join(dst, output_filename)
+
+        img_mat = cv2.imread(imageName)
+        img = np.asarray(img_mat)
+        imgDots = getDotMask(img)
+        skimage.io.imsave(output_filename, imgDots, check_contrast=False)
+
+
+
 def enlargingDots(imgDots):
     dims = 3
     i = 6
@@ -558,6 +572,7 @@ if __name__ == "__main__":
     imageNames = ["aphaniz_503.tiff", "aphaniz_558.tiff", "pabefore_17.png", "pabefore_1023.png", "pabefore_1396.png"]
     #imageNames = ["pabefore_1396.png"] # 503 has 45 dots by counting
     #imageNames = ["aphaniz_558.tiff"] # 503 has 45 dots by counting
+    imageNames = createFileList("datalabelled/aphaniz")
     savingDotsPic = False
     countingDots = False
     joiningDots = False
