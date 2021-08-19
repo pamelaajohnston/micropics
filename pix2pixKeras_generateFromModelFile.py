@@ -266,7 +266,7 @@ if __name__ == "__main__":
 	inputFilenames = createFileList(model_inFiles_outFiles[1])
 	outputDirBaseName = model_inFiles_outFiles[2]
 	makeFreshDir(outputDirBaseName)
-	syntheticSample = model_inFiles_outFiles[3]
+	ticSample = model_inFiles_outFiles[3]
 	compareWithDir = model_inFiles_outFiles[4]
 
 	samples = []

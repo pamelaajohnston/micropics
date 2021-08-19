@@ -36,20 +36,20 @@ def patchDir(source, dest, pheight, pwidth, vstride, hstride):
     print("Patching the directory {} into {}".format(source, dest))
     for imageName in imageNames:
         imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
-        print(imageBaseName)
+        #print(imageBaseName)
         img_mat = cv2.imread(imageName)
         img = np.asarray(img_mat)
         iheight, iwidth = img.shape[:2]
-        print("Image {} is {} by {}".format(imageName, iwidth, iheight))
+        #print("Image {} is {} by {}".format(imageName, iwidth, iheight))
         vstart = 0
         vend = iheight - (pheight) + 1
         hstart = 0
         hend = iwidth - (pwidth) + 1
 
-        print("Starting at {}, last patch from {}".format(vstart, vend))
-        print(range(vstart, vend, (pheight+vstride)))
-        print("Starting at {}, last patch from {}".format(hstart, hend))
-        print(range(hstart, hend, (pwidth+hstride)))
+        #print("Starting at {}, last patch from {}".format(vstart, vend))
+        #print(range(vstart, vend, (pheight+vstride)))
+        #print("Starting at {}, last patch from {}".format(hstart, hend))
+        #print(range(hstart, hend, (pwidth+hstride)))
 
         for j in range(vstart, vend, (pheight+vstride)):
             for i in range(hstart, hend, (pwidth+hstride)):

@@ -5,6 +5,14 @@ Under development.
 
 Files:
 
+countCells.py
+A file that combines functions from several other files and actually (eventually) counts the cells. The process is:
+
+- take input image, turn it into patches (patchRGB.py functions)
+- use trained GAN to do style transfer on the patches
+- Process ground truth to get the cell markings validation_steps
+- reassemble the patches and count the cells.
+
 cycleGANKeras.py
 A file for training a cycleGAN neural network model.
 

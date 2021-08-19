@@ -10,6 +10,10 @@ from skimage.exposure import rescale_intensity
 import argparse
 import shutil
 
+import pix2pixKeras_generateFromModelFile as p
+
+
+
 def showImage(image):
     plt.imshow(image, interpolation = 'bicubic')
     plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
@@ -170,7 +174,7 @@ def countDots(img, s1=10, s2=100):
         if s1<a <s2:
             xcnts.append(cnt)
 
-    print("Dots number: {}".format(len(xcnts)))
+    #print("Dots number: {}".format(len(xcnts)))
     return len(xcnts)
     #Dots number: 23
 
@@ -467,9 +471,9 @@ def morphFilter(img, binaryMask=False, dims=3):
     # Normalise the greyscale
     #img_norm = img_gray.copy()
     #cv2.normalize(img_gray,  img_norm, 0, 255, cv2.NORM_MINMAX)
-    gray = img_gray
+    #gray = img_gray
 
-    ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    ret, thresh = cv2.threshold(img_gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
     # noise removal
     kernel = np.ones((dims,dims),np.uint8)
     opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
@@ -566,6 +570,53 @@ def makeFreshDir(dirname):
         shutil.rmtree(dirname)
     os.makedirs(dirname)
 
+def enlargeDotsDir(src_dir, dst_dir):
+    imageNames = createFileList(src_dir)
+    for imageName in imageNames:
+        imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
+        #print(imageBaseName)
+
+        img_mat = cv2.imread(imageName)
+        img = np.asarray(img_mat)
+        #height, width = img.shape[:2]
+        imgDots = getDotMask(img)
+
+        imgTrichome = getTrichomeMask(img_mat, binaryMask=True)
+        imgDots = enlargingAndPruningDots(imgDots, imgTrichome)
+        dotsName = os.path.join(dst_dir, "{}.png".format(imageBaseName))
+        skimage.io.imsave(dotsName, imgDots, check_contrast=False)
+
+def tidyImageDir(src_dir, dst_dir, filename_append=""):
+    imageNames = createFileList(src_dir)
+    for imageName in imageNames:
+        imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
+        save_name = os.path.join(dst_dir, "{}{}.png".format(imageBaseName, filename_append))
+        img_mat = cv2.imread(imageName)
+        img = np.asarray(img_mat)
+        img = p.getRidOfWeirdInaccuracies(img)
+        img = np.where(img==127.5, 128, img)
+
+        img_gray = cv2.cvtColor(img_mat, cv2.COLOR_RGB2GRAY)
+
+        kernel = np.ones((3, 3),np.uint8)
+        opening = cv2.morphologyEx(img_gray, cv2.MORPH_OPEN,kernel, iterations = 2)
+
+        img = cv2.cvtColor(opening, cv2.COLOR_GRAY2RGB)
+        img = p.getRidOfWeirdInaccuracies(img)
+        img_save = np.where(img==127.5, 128, img)
+
+        skimage.io.imsave(save_name, img_save, check_contrast=False)
+
+def countDotsDir(src_dir):
+    imageNames = createFileList(src_dir)
+    dots = []
+    for imageName in imageNames:
+        img_mat = cv2.imread(imageName)
+        img = np.asarray(img_mat)
+        img = np.where(img==128, 0, img) # Getting rid of background
+        numDots = countDots(img, s1=10, s2=1000)
+        dots.append(numDots)
+    return dots
 
 
 if __name__ == "__main__":
