@@ -135,9 +135,9 @@ if __name__ == "__main__":
     # Count the dots
     dirname_src = os.path.join(dest_dir, src_trans)
     foundDots = redDots.countDotsDir(dirname_src)
-    dirname_src = os.path.join(dest_dir, gt_big_dots)
+    dirname_src = os.path.join(dest_dir, gt_dots_trans)
     gtBigDots = redDots.countDotsDir(dirname_src)
-    dirname_src = os.path.join(dest_dir, gt_dots)
+    dirname_src = os.path.join(dest_dir, gt_big_dots)
     gtDots = redDots.countDotsDir(dirname_src)
 
     for i in zip(foundDots, gtBigDots, gtDots):
