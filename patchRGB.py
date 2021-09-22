@@ -65,6 +65,8 @@ def unpatchDir(source, dest, pheight, pwidth):
     images = list(set(images))
     print("The images in the directory are: {}".format(images))
     for image in images:
+        image = "{}_".format(image)
+        print("Searching for {}".format(image))
         patchNames_full = [k for k in imageNames if image in k]
         patchNames0 = [k for k in imageNames_b if image in k]
         patchNames = [k.replace(".png", "") for k in imageNames_b if image in k]
@@ -80,10 +82,11 @@ def unpatchDir(source, dest, pheight, pwidth):
         m = np.zeros(size, dtype=np.uint8)
         #print(patchNames_full)
         for patch in patchNames_full:
+            print("reading {}".format(patch))
             img_mat = cv2.imread(patch)
             p = np.asarray(img_mat)
             patchName = os.path.splitext(os.path.basename(patch))[0]
-            patchName = patchName.replace(image, "")
+            patchName = patchName.replace(image, "_")
             patchName = patchName.replace("_patch", "")
             xco = int(patchName.split("x")[0])
             yco = int(patchName.split("x")[1])
