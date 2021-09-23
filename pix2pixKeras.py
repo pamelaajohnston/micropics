@@ -4,7 +4,8 @@ from numpy import load
 from numpy import zeros
 from numpy import ones
 from numpy.random import randint
-from keras.optimizers import Adam
+#from keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam
 from keras.initializers import RandomNormal
 from keras.models import Model
 from keras.models import Input
@@ -56,7 +57,7 @@ def define_discriminator(image_shape):
 	# define model
 	model = Model([in_src_image, in_target_image], patch_out)
 	# compile model
-	opt = Adam(lr=0.0002, beta_1=0.5)
+	opt = Adam(learning_rate=0.0002, beta_1=0.5)
 	model.compile(loss='binary_crossentropy', optimizer=opt, loss_weights=[0.5])
 	return model
 
@@ -216,6 +217,10 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 	bat_per_epo = int(len(trainA) / n_batch)
 	# calculate the number of training iterations
 	n_steps = bat_per_epo * n_epochs
+	print("Max steps: {}, bat_per_epo: {}, n_epochs: {}".format(n_steps, bat_per_epo, n_epochs))
+	# Always save 3 models
+	#savepoint = (bat_per_epo * 10)
+	savepoint = n_steps//3
 	# manually enumerate epochs
 	for i in range(n_steps):
 		# select a batch of real samples
@@ -231,7 +236,7 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 		# summarize performance
 		print('>%d, d1[%.3f] d2[%.3f] g[%.3f]' % (i+1, d_loss1, d_loss2, g_loss))
 		# summarize model performance
-		if (i+1) % (bat_per_epo * 10) == 0:
+		if (i+1) % savepoint == 0:
 			summarize_performance(i, g_model, dataset, destDir=destDir)
 
 def makeFreshDir(dirname):

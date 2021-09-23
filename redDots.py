@@ -20,7 +20,7 @@ def showImage(image):
     plt.show()
 
 def findDotColour(img):
-    print(img.shape)
+    #print(img.shape)
     imgR = img.copy()
     imgR[:,:,1] = imgR[:,:,0]
     imgR[:,:,2] = imgR[:,:,2]
@@ -132,7 +132,7 @@ def enlargingAndPruningDots(imgDots, mask):
         numDots = countDots(imgDots_new, s1=s1, s2=s2)
         if (numDots > (startingDots-5)):
             imgDots = imgDots_new
-        print("We've done {} iterations and there are {} dots".format(iterations, numDots))
+        #print("We've done {} iterations and there are {} dots".format(iterations, numDots))
         iterations = iterations + 1
         #s1 = s1*s1
         s2 = s2*s2
@@ -269,16 +269,16 @@ def joinDots(img):
             # Let's always organise the tuple from left to right, top to bottom
             myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(b[0]), int(b[1]))
             #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
-            print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
+            #print("Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[0,0]))
             while (myTuple in connections):
                 idx = idx + 1
                 if idx < len(sort):
                     myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(sort[idx,1]), int(sort[idx,2]))
                     #myTuple = findRightAndDownNeighbour(a[0], a[1], idx, sort)
-                    print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
+                    #print("Alternative: Joining a({}, {}) and b({}, {}) distance {}".format(myTuple[0], myTuple[1], myTuple[2], myTuple[3], sort[idx,0]))
                 else:
                     myTuple = null
-                    print("No other point found?")
+                    #print("No other point found?")
             if myTuple:
                 connections.append(myTuple)
     else: # join the nearest two neighbours that form the most straight line with a
@@ -308,7 +308,7 @@ def joinDots(img):
                 for j in range(i, maxidx):
                     if i != j:
                         pairsList.append((i, j))
-            print(pairsList)
+            #print(pairsList)
             minDiff = 50.0
             maxCell = 50.0
             c1 = a
@@ -316,23 +316,23 @@ def joinDots(img):
             for pointPair in pairsList:
                 idx1 = pointPair[0]
                 idx2 = pointPair[1]
-                print(a)
+                #print(a)
                 b1 = np.asarray([int(sort[idx1,1]), int(sort[idx1,2])])
-                print(b1)
+                #print(b1)
                 dist_atob1 = sort[idx1, 0]
                 b2 = np.asarray([int(sort[idx2,1]), int(sort[idx2,2])])
                 dist_atob2 = sort[idx2, 0]
                 dist_b1tob2 = np.linalg.norm(b1-b2)
                 if (dist_atob1 < maxCell) & (dist_atob1 < maxCell):
                     if dist_b1tob2 != 0:
-                        print("points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
+                        #print("points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
                         diff = abs((dist_atob1 + dist_atob2) - dist_b1tob2)
-                        print("distances: b1 to b2: {}, a to b1: {}, a to b2: {}, diff: {}".format(dist_b1tob2, dist_atob1, dist_atob2, diff))
+                        #print("distances: b1 to b2: {}, a to b1: {}, a to b2: {}, diff: {}".format(dist_b1tob2, dist_atob1, dist_atob2, diff))
                         if diff < minDiff:
                             minDiff = diff
                             c1 = b1
                             c2 = b2
-                            print("best points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
+                            #print("best points: a({},{}), b1({},{}) b2({},{})".format(a[0], a[1], b1[0], b1[1], b2[0], b2[1]))
 
 
             myTuple = sortOutTwoPoints(int(a[0]), int(a[1]), int(c1[0]), int(c1[1]))
@@ -344,13 +344,13 @@ def joinDots(img):
     if len(connections) != len(set(connections)):
         print("There were some duplicates in the list: {} vs ".format(len(connections), len(set(connections))))
     for cn in connections:
-        print(cn)
+        #print(cn)
         cv2.line(img, (cn[0],cn[1]), (int(cn[2]), int(cn[3])), (0,0,255), 2)
 
 
 
 
-    print("Dots number: {}".format(len(xcnts)))
+    #print("Dots number: {}".format(len(xcnts)))
     #Dots number: 23
     return img
 
@@ -401,7 +401,7 @@ def hp_filter(img, binaryMask=False):
     return img_filtered
 
 def grabCut(img, binaryMask=False):
-    print(img.shape)
+    #print(img.shape)
     mask = np.zeros(img.shape[:2], np.uint8)
 
     bgdModel = np.zeros((1, 65), np.float64)
@@ -443,8 +443,8 @@ def grabCut2(img, binaryMask=False):
 def prepGrabCutMask(mask):
     #0 means background, 255 means foreground but it's through
     # draw over the lines to get a proper mask
-    print("prepGrabCutMask")
-    print(mask.shape)
+    #print("prepGrabCutMask")
+    #print(mask.shape)
     #showImage(mask)
     mask = mask[:,:,0]
     kernel = np.ones((7, 7))
@@ -531,7 +531,7 @@ def getTrichomeMask(img, binaryMask=False):
     return img_back
 
 def shapeDetection(img, bin_1c):
-    print(img.shape)
+    #print(img.shape)
     doHough = False
     if doHough:
         edges = cv2.Canny(bin_1c, 50, 200)
@@ -541,7 +541,7 @@ def shapeDetection(img, bin_1c):
         lines = cv2.HoughLinesP(edges,1,np.pi/180,10,minLineLength,maxLineGap)
         # Draw lines on the image
         for line in lines:
-            print("A line!")
+            #print("A line!")
             x1, y1, x2, y2 = line[0]
             cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 3)
         return img
@@ -604,7 +604,7 @@ def tidyImageDir(src_dir, dst_dir, filename_append=""):
         img = cv2.cvtColor(opening, cv2.COLOR_GRAY2RGB)
         img = p.getRidOfWeirdInaccuracies(img)
         img_save = np.where(img==127.5, 128, img)
-
+        img_save = img_save.astype(np.uint8)
         skimage.io.imsave(save_name, img_save, check_contrast=False)
 
 def countDotsDir(src_dir):

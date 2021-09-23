@@ -63,10 +63,10 @@ def unpatchDir(source, dest, pheight, pwidth):
     imageNames_b = [os.path.splitext(os.path.basename(i))[0] for i in imageNames]
     images = [i.split("_patch")[0] for i in imageNames_b]
     images = list(set(images))
-    print("The images in the directory are: {}".format(images))
+    #print("The images in the directory are: {}".format(images))
     for image in images:
         image = "{}_".format(image)
-        print("Searching for {}".format(image))
+        #print("Searching for {}".format(image))
         patchNames_full = [k for k in imageNames if image in k]
         patchNames0 = [k for k in imageNames_b if image in k]
         patchNames = [k.replace(".png", "") for k in imageNames_b if image in k]
@@ -76,13 +76,12 @@ def unpatchDir(source, dest, pheight, pwidth):
         patchy = [int(i.split("x")[1]) for i in patchdims]
         width = max(patchx) + pwidth
         height = max(patchy) + pheight
-        print("The patches for {} will make a {} by {} image".format(image, width, height))
+        #print("The patches for {} will make a {} by {} image".format(image, width, height))
 
         size = (height, width, 3)
         m = np.zeros(size, dtype=np.uint8)
         #print(patchNames_full)
         for patch in patchNames_full:
-            print("reading {}".format(patch))
             img_mat = cv2.imread(patch)
             p = np.asarray(img_mat)
             patchName = os.path.splitext(os.path.basename(patch))[0]
@@ -92,6 +91,9 @@ def unpatchDir(source, dest, pheight, pwidth):
             yco = int(patchName.split("x")[1])
             m[yco:yco+pheight, xco:xco+pwidth] = p
         imageName = os.path.join(dest, "{}.png".format(image))
+        imageName = imageName.replace("_.", ".")
+        
+
         #skimage.io.imsave(cropName, crop_img, check_contrast=False)
         cv2.imwrite(imageName, m)
 

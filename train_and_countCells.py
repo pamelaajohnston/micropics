@@ -13,6 +13,8 @@ import random
 import patchRGB
 import pix2pixKeras_generateFromModelFile as t #t for translation
 import redDots
+import generatePictures
+import pix2pixKeras as m # m for model
 
 # Directory structure:
 #
@@ -26,6 +28,7 @@ s_lab_imr           = "source_labelled_reassembled" # rgb images, full pictures
 s_dots_pat          = "source_dots_patches" # black and white images, dots, patches
 s_dots_im           = "source_dots_images" # black and white images, dots, full images
 s_dots_imr          = "source_dots_reassembled" # black and white images, cropped patches reassembled
+s_bwg_pat           = "source_bwg_patches" # black, white grey images, cropped patches reassembled, predicted from the dots
 s_bwg_imr           = "source_bwg_reassembled" # black, white grey images, cropped patches reassembled, predicted from the dots
 t_bwg_pat           = "translated_bwg_patches" # black, white, grey images, patches
 t_bwg_im            = "translated_bwg_reassembled" # black, white, grey images, image patches reassembled
@@ -63,6 +66,9 @@ if __name__ == "__main__":
     pheight = 224
     pwidth = 224
     keep_dest_dir = True
+    set_up_files = False
+    create_model = False
+    run_models = True
 
     # For Pam's Linux box
     #fullDatasetPath = "/home/pam/data/micropics/redDotDataset/redDotsSamples/redDotsSamples/aphanizemenon/"
@@ -104,131 +110,175 @@ if __name__ == "__main__":
     print("Storing intermediate pictures (and patches) to {} (will delete at end if not required).".format(dest_dir))
     print("Using the model in {} for translation".format(model_file))
 
-    # Set up the directories
-    patchRGB.makeFreshDir(dest_dir)
-    # We should have test, train and models in that dir
-    dirs = ["test", "train", "models"]
-    create_temp_directories(dest_dir, dirs)
-    train_dir = os.path.join(dest_dir, "train")
-    test_dir = os.path.join(dest_dir, "test")
-    model_dir =  os.path.join(dest_dir, "model")
-    # Both the training and test dir need all these
-    dirs = [s_unlab_im, s_unlab_pat, s_lab_im, s_lab_pat, s_lab_imr, s_dots_pat, s_dots_im, s_dots_imr, s_bwg_imr, t_bwg_pat, t_bwg_im, visualise]
-    create_temp_directories(train_dir, dirs)
-    create_temp_directories(test_dir, dirs)
-    test_src_label = os.path.join(test_dir, s_lab_im)
-    test_src_unlabel = os.path.join(test_dir, s_unlab_im)
-    train_src_label = os.path.join(train_dir, s_lab_im)
-    train_src_unlabel = os.path.join(train_dir, s_unlab_im)
+    if set_up_files:
+        # Set up the directories
+        patchRGB.makeFreshDir(dest_dir)
+        # We should have test, train and models in that dir
+        dirs = ["test", "train", "models"]
+        create_temp_directories(dest_dir, dirs)
+        train_dir = os.path.join(dest_dir, "train")
+        test_dir = os.path.join(dest_dir, "test")
+        model_dir =  os.path.join(dest_dir, "models")
+        # Both the training and test dir need all these
+        dirs = [s_unlab_im, s_unlab_pat, s_lab_im, s_lab_pat, s_lab_imr, s_dots_pat, s_dots_im, s_dots_imr, s_bwg_pat, s_bwg_imr, t_bwg_pat, t_bwg_im, visualise]
+        create_temp_directories(train_dir, dirs)
+        create_temp_directories(test_dir, dirs)
+        test_src_label = os.path.join(test_dir, s_lab_im)
+        test_src_unlabel = os.path.join(test_dir, s_unlab_im)
+        train_src_label = os.path.join(train_dir, s_lab_im)
+        train_src_unlabel = os.path.join(train_dir, s_unlab_im)
 
 
-    # Sort out what is train and what is test:
-    labelledFileNames = redDots.createFileList(labelledDataPath)
-    testList = []
-    trainList = []
-    split_files_into_test_and_train_lists(labelledFileNames, testList, trainList, 10)
+        # Sort out what is train and what is test:
+        labelledFileNames = redDots.createFileList(labelledDataPath)
+        testList = []
+        trainList = []
+        split_files_into_test_and_train_lists(labelledFileNames, testList, trainList, 10)
 
-    copy_files_into_dir(testList, test_src_label)
-    labelList = (x.replace("labels", "originals") for x in testList)
-    copy_files_into_dir(labelList, test_src_unlabel)
+        copy_files_into_dir(testList, test_src_label)
+        labelList = (x.replace("labels", "originals") for x in testList)
+        copy_files_into_dir(labelList, test_src_unlabel)
 
-    copy_files_into_dir(trainList, train_src_label)
-    labelList = (x.replace("labels", "originals") for x in trainList)
-    copy_files_into_dir(labelList, train_src_unlabel)
+        copy_files_into_dir(trainList, train_src_label)
+        labelList = (x.replace("labels", "originals") for x in trainList)
+        copy_files_into_dir(labelList, train_src_unlabel)
 
-    # Now prep what we can without a model:
-    dirs = ["train", "test"]
-    for d in dirs:
-        mydir = os.path.join(dest_dir, d)
-        # Patch the labelled images
-        dirname_src = os.path.join(mydir, s_lab_im)
-        dirname_dst = os.path.join(mydir, s_lab_pat)
-        patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
+        # Now prep what we can without a model:
+        dirs = ["train", "test"]
+        for d in dirs:
+            mydir = os.path.join(dest_dir, d)
+            # Patch the labelled images
+            dirname_src = os.path.join(mydir, s_lab_im)
+            dirname_dst = os.path.join(mydir, s_lab_pat)
+            patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
 
-        # Unpatch the labelled images (to account for crops)
-        dirname_src = os.path.join(mydir, s_lab_pat)
-        dirname_dst = os.path.join(mydir, s_lab_imr)
-        patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
+            # Unpatch the labelled images (to account for crops)
+            dirname_src = os.path.join(mydir, s_lab_pat)
+            dirname_dst = os.path.join(mydir, s_lab_imr)
+            patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
 
-        # Dots from ground truth (patches - gets the right image size)
-        dirname_src = os.path.join(mydir, s_lab_pat)
-        dirname_dst = os.path.join(mydir, s_dots_pat)
-        redDots.getDotMaskDir(dirname_src, dirname_dst)
+            # Dots from ground truth (patches - gets the right image size)
+            dirname_src = os.path.join(mydir, s_lab_pat)
+            dirname_dst = os.path.join(mydir, s_dots_pat)
+            redDots.getDotMaskDir(dirname_src, dirname_dst)
 
-        # Unpatch the ground truth dot mask (to account for crops)
-        dirname_src = os.path.join(mydir, s_dots_pat)
-        dirname_dst = os.path.join(mydir, s_dots_imr)
-        patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
+            # Unpatch the ground truth dot mask (to account for crops)
+            dirname_src = os.path.join(mydir, s_dots_pat)
+            dirname_dst = os.path.join(mydir, s_dots_imr)
+            patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
 
-        # Enlarge the ground truth dots (for comparison)
-        dirname_src = os.path.join(mydir, s_lab_imr)
-        dirname_dst = os.path.join(mydir, s_bwg_imr)
-        redDots.enlargeDotsDir(dirname_src, dirname_dst)
+            # Enlarge the ground truth dots (for comparison)
+            dirname_src = os.path.join(mydir, s_lab_imr)
+            dirname_dst = os.path.join(mydir, s_bwg_imr)
+            redDots.enlargeDotsDir(dirname_src, dirname_dst)
 
-        # Dots from ground truth (images)
-        dirname_dst = os.path.join(mydir, s_lab_im)
-        dirname_dst = os.path.join(mydir, s_dots_im)
-        redDots.getDotMaskDir(dirname_src, dirname_dst)
+            # Patch the ground truth big dots for network training
+            dirname_src = os.path.join(mydir, s_bwg_imr)
+            dirname_dst = os.path.join(mydir, s_bwg_pat)
+            patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
 
-        # Patch the source
-        dirname_src = os.path.join(mydir, s_unlab_im)
-        dirname_dst = os.path.join(mydir, s_unlab_pat)
-        patchRGB.patchDir(source_dir, dirname_dst, pheight, pwidth, 0, 0)
+            # Dots from ground truth (images)
+            dirname_src = os.path.join(mydir, s_lab_im)
+            dirname_dst = os.path.join(mydir, s_dots_im)
+            redDots.getDotMaskDir(dirname_src, dirname_dst)
 
-    quit()
-
-    # Style transfer the source patches
-    dirname_src = os.path.join(dest_dir, s_unlab_pat)
-    dirname_dst = os.path.join(dest_dir, t_bwg_pat)
-    t.translate(model_file, dirname_src, dirname_dst)
-
-    # Tidy the style-transferred source patches
-    #dirname_src = os.path.join(dest_dir, t_bwg_pat)
-    #dirname_dst = os.path.join(dest_dir, t_bwg_pat)
-    #redDots.tidyImageDir(dirname_src, dirname_dst)
+            # Patch the source
+            dirname_src = os.path.join(mydir, s_unlab_im)
+            dirname_dst = os.path.join(mydir, s_unlab_pat)
+            patchRGB.patchDir(source_dir, dirname_dst, pheight, pwidth, 0, 0)
+    else:
+        train_dir = os.path.join(dest_dir, "train")
+        test_dir = os.path.join(dest_dir, "test")
+        model_dir =  os.path.join(dest_dir, "models")
 
 
-    # Unpatch the translated image
-    dirname_src = os.path.join(dest_dir, t_bwg_pat)
-    dirname_dst = os.path.join(dest_dir, t_bwg_im)
-    patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
+    if create_model:
+        print("Training a model!!!!!!!!!!!!!!!!!!!!!!!")
+        dirname_src = os.path.join(train_dir, s_unlab_pat)
+        dirname_dst = os.path.join(train_dir, s_bwg_pat)
+        src_images, tar_images = generatePictures.load_images2(dirname_src, dirname_dst)
+        # Scale and convert to floats (because they're visible pixels right now)
+        print(src_images.shape)
+        src_images = (src_images - 127.5) / 127.5
+        tar_images = (tar_images - 127.5) / 127.5
+        print(src_images.shape)
+        dataset = np.asarray([src_images, tar_images])
+        image_shape = dataset[0].shape[1:]
+        print(image_shape)
+        # define the models
+        d_model = m.define_discriminator(image_shape)
+        g_model = m.define_generator(image_shape)
+        # define the composite model
+        gan_model = m.define_gan(g_model, d_model, image_shape)
+        # train model
+        m.train(d_model, g_model, gan_model, dataset, n_epochs=3, n_batch=1, destDir=model_dir)
 
-    # Tidy the style-transferred source complete image
-    dirname_src = os.path.join(dest_dir, t_bwg_im)
-    dirname_dst = os.path.join(dest_dir, t_bwg_im)
-    redDots.tidyImageDir(dirname_src, dirname_dst, "")
+        model_files = redDots.createFileList(model_dir, formats=['.h5'])
+    else:
+        model_files = [model_file,]
 
-    # Count the dots
-    dirname_src = os.path.join(dest_dir, t_bwg_im)
-    foundDots = redDots.countDotsDir(dirname_src)
-    dirname_src = os.path.join(dest_dir, s_dots_imr)
-    gtDots = redDots.countDotsDir(dirname_src)
-    dirname_src = os.path.join(dest_dir, s_bwg_imr)
-    gtBigDots = redDots.countDotsDir(dirname_src)
 
-    for i in zip(foundDots, gtBigDots, gtDots):
-        print("found cells {}; gt (processed): {}; gt (Ismael's) {}".format(i[0], i[1], i[2]))
+    # Now run the models over the test files
 
-    # lastly, visualise (somehow...)
-    dirname = os.path.join(dest_dir, t_bwg_im)
-    t_bwg_im_files = redDots.createFileList(dirname)
-    dirname = os.path.join(dest_dir, s_dots_imr)
-    s_dots_im_files = redDots.createFileList(dirname)
-    dirname = os.path.join(dest_dir, s_bwg_imr)
-    s_bwg_imr_files = redDots.createFileList(dirname)
+    if run_models:
+        print("Testing the models!!!!!!!!!!!!!!!!!!!!!!!")
+        for model_file in model_files:
+            for d in ["test", "train"]:
+                # Style transfer the source patches
+                mydir = os.path.join(dest_dir, d)
+                dirname_src = os.path.join(mydir, s_unlab_pat)
+                dirname_dst = os.path.join(mydir, t_bwg_pat)
+                t.translate(model_file, dirname_src, dirname_dst)
 
-    all_files = zip(t_bwg_im_files, s_dots_im_files)
-    dirname_dst = os.path.join(dest_dir, visualise)
-    for pair in all_files:
-        img_mine = cv2.imread(pair[0])
-        img_gt = cv2.imread(pair[1])
-        #img_gt = cv2.cvtColor(img_gt, cv2.COLOR_GRAY2RGB)
-        img_mine[img_mine>250]=170
-        img_mine[img_gt>200]=255
+                # Tidy the style-transferred source patches
+                #dirname_src = os.path.join(dest_dir, t_bwg_pat)
+                #dirname_dst = os.path.join(dest_dir, t_bwg_pat)
+                #redDots.tidyImageDir(dirname_src, dirname_dst)
 
-        imageBaseName = os.path.splitext(os.path.basename(pair[0]))[0]
-        save_name = os.path.join(dirname_dst, "{}.png".format(imageBaseName))
-        skimage.io.imsave(save_name, img_mine, check_contrast=False)
+
+                # Unpatch the translated image
+                dirname_src = os.path.join(mydir, t_bwg_pat)
+                dirname_dst = os.path.join(mydir, t_bwg_im)
+                patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
+
+                # Tidy the style-transferred source complete image
+                dirname_src = os.path.join(mydir, t_bwg_im)
+                dirname_dst = os.path.join(mydir, t_bwg_im)
+                redDots.tidyImageDir(dirname_src, dirname_dst, "")
+
+                # Count the dots
+                dirname_src = os.path.join(mydir, t_bwg_im)
+                foundDots = redDots.countDotsDir(dirname_src)
+                dirname_src = os.path.join(mydir, s_dots_imr)
+                gtDots = redDots.countDotsDir(dirname_src)
+                dirname_src = os.path.join(mydir, s_bwg_imr)
+                gtBigDots = redDots.countDotsDir(dirname_src)
+                imageNames = redDots.createFileList(dirname_src)
+
+                for i in zip(imageNames, foundDots, gtBigDots, gtDots):
+                    basename = os.path.basename(model_file)
+                    print("model {} file {} found cells {}; gt (processed): {}; gt (Ismael's) {}".format(basename, os.path.basename(i[0]), i[1], i[2], i[3]))
+
+                # lastly, visualise (somehow...)
+                dirname = os.path.join(mydir, t_bwg_im)
+                t_bwg_im_files = redDots.createFileList(dirname)
+                dirname = os.path.join(mydir, s_dots_imr)
+                s_dots_im_files = redDots.createFileList(dirname)
+                dirname = os.path.join(mydir, s_bwg_imr)
+                s_bwg_imr_files = redDots.createFileList(dirname)
+
+                all_files = zip(t_bwg_im_files, s_dots_im_files)
+                dirname_dst = os.path.join(mydir, visualise)
+                for pair in all_files:
+                    img_mine = cv2.imread(pair[0])
+                    img_gt = cv2.imread(pair[1])
+                    #img_gt = cv2.cvtColor(img_gt, cv2.COLOR_GRAY2RGB)
+                    img_mine[img_mine>250]=170
+                    img_mine[img_gt>200]=255
+
+                    imageBaseName = os.path.splitext(os.path.basename(pair[0]))[0]
+                    save_name = os.path.join(dirname_dst, "{}.png".format(imageBaseName))
+                    skimage.io.imsave(save_name, img_mine, check_contrast=False)
 
 
     # tidy up

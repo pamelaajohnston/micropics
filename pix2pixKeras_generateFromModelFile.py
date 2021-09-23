@@ -229,13 +229,13 @@ def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample
 	samples = []
 	# creating the samples
 	for name in inputFilenames:
-		print("Sample name {}".format(name))
+		#print("Sample name {}".format(name))
 		s = load_one_sample(name, size=(256,256), syntheticSample=syntheticSample)
 		samples.append(s)
 
 	samples = np.asarray(samples)
 	scaled_samples = (samples + 1) / 2.0
-	print("The shape of the samples is: {}".format(samples.shape))
+	#print("The shape of the samples is: {}".format(samples.shape))
 
 	# loading the model
 	g_model = load_model(model_file)
@@ -248,10 +248,11 @@ def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample
 		bname = os.path.splitext(os.path.basename(name))[0]
 		output_filename = "{}.png".format(bname)
 		output_filename = os.path.join(dest, output_filename)
-		print(output_filename)
+		#print(output_filename)
 		outImage = X_fakeB[i]
 		resized_image = cv2.resize(outImage, (pwidth, pheight))
 		#skimage.io.imsave(output_filename, outImage, check_contrast=False)
+		#resized_image = (resized_image*255).astype(np.uint8)
 		skimage.io.imsave(output_filename, resized_image, check_contrast=False)
 
 
@@ -271,7 +272,7 @@ if __name__ == "__main__":
 
 	samples = []
 	for name in inputFilenames:
-		print("Sample name {}".format(name))
+		#print("Sample name {}".format(name))
 		s = load_one_sample(name, size=(256,256), syntheticSample=syntheticSample)
 		samples.append(s)
 
@@ -281,7 +282,7 @@ if __name__ == "__main__":
 	for testnum, gen_model in enumerate(gen_models):
 		modelname = os.path.splitext(os.path.basename(gen_model))[0]
 		g_model = load_model(gen_model)
-		print("The shape of the samples is: {}".format(samples.shape))
+		#print("The shape of the samples is: {}".format(samples.shape))
 		X_fakeB, _ = generate_fake_samples(g_model, samples, 1)
 		X_fakeB = (X_fakeB + 1) / 2.0
 		X_fakeB = np.uint8(X_fakeB*255)
@@ -300,7 +301,7 @@ if __name__ == "__main__":
 			bname = os.path.splitext(os.path.basename(name))[0]
 			output_filename = "{}_{}_fake.png".format(bname, modelname)
 			output_filename = os.path.join(outputDirBaseName, output_filename)
-			print(output_filename)
+			#print(output_filename)
 			outImage = X_fakeB[i]
 			skimage.io.imsave(output_filename, outImage, check_contrast=False)
 
