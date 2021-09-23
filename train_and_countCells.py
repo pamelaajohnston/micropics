@@ -15,6 +15,7 @@ import pix2pixKeras_generateFromModelFile as t #t for translation
 import redDots
 import generatePictures
 import pix2pixKeras as m # m for model
+import pandas as pd
 
 # Directory structure:
 #
@@ -247,29 +248,52 @@ if __name__ == "__main__":
                 redDots.tidyImageDir(dirname_src, dirname_dst, "")
 
                 # Count the dots
+                print("Counting dots in predicted images")
                 dirname_src = os.path.join(mydir, t_bwg_im)
-                foundDots = redDots.countDotsDir(dirname_src)
+                foundDots = redDots.countDotsDir2(dirname_src)
+                print("Counting dots in dots images")
                 dirname_src = os.path.join(mydir, s_dots_imr)
-                gtDots = redDots.countDotsDir(dirname_src)
+                print("Counting dots in processed dots images")
+                gtDots = redDots.countDotsDir2(dirname_src)
                 dirname_src = os.path.join(mydir, s_bwg_imr)
-                gtBigDots = redDots.countDotsDir(dirname_src)
+                gtBigDots = redDots.countDotsDir2(dirname_src)
                 imageNames = redDots.createFileList(dirname_src)
 
-                for i in zip(imageNames, foundDots, gtBigDots, gtDots):
-                    basename = os.path.basename(model_file)
-                    print("model {} file {} found cells {}; gt (processed): {}; gt (Ismael's) {}".format(basename, os.path.basename(i[0]), i[1], i[2], i[3]))
+                #for i in zip(imageNames, foundDots, gtBigDots, gtDots):
+                #    basename = os.path.basename(model_file)
+                #    print("model {} file {} found cells {}; gt (processed): {}; gt (Ismael's) {}".format(basename, os.path.basename(i[0]), i[1], i[2], i[3]))
+
+                foundDots_df = pd.DataFrame(foundDots, columns=['foundDots', 'imagefile'])
+                gtDots_df = pd.DataFrame(gtDots, columns=['Ismaels', 'imagefile'])
+                gtBigDots_df = pd.DataFrame(gtBigDots, columns=['processed', 'imagefile'])
+
+                mydf = foundDots_df.merge(gtDots_df, on='imagefile', how='inner')
+                mydf = mydf.merge(gtBigDots_df, on='imagefile', how='inner')
+                mydf = mydf[['imagefile', 'foundDots', 'Ismaels', 'processed']]
+                print(mydf.to_string())
 
                 # lastly, visualise (somehow...)
-                dirname = os.path.join(mydir, t_bwg_im)
-                t_bwg_im_files = redDots.createFileList(dirname)
-                dirname = os.path.join(mydir, s_dots_imr)
-                s_dots_im_files = redDots.createFileList(dirname)
-                dirname = os.path.join(mydir, s_bwg_imr)
-                s_bwg_imr_files = redDots.createFileList(dirname)
+                t_bwg_im_files = redDots.createFileList(os.path.join(mydir, t_bwg_im))
+                s_dots_im_files = redDots.createFileList(os.path.join(mydir, s_dots_imr))
+                s_bwg_imr_files = redDots.createFileList(os.path.join(mydir, s_bwg_imr))
 
-                all_files = zip(t_bwg_im_files, s_dots_im_files)
+                t_bwg_im_files_df = pd.DataFrame(t_bwg_im_files, columns=['t_bwg_im_files'])
+                t_bwg_im_files_df['basename'] = t_bwg_im_files_df["t_bwg_im_files"].apply(lambda x: os.path.basename(x))
+                s_dots_im_files_df = pd.DataFrame(s_dots_im_files, columns=['s_dots_im_files'])
+                s_dots_im_files_df['basename'] = s_dots_im_files_df["s_dots_im_files"].apply(lambda x: os.path.basename(x))
+                s_bwg_imr_files_df = pd.DataFrame(s_bwg_imr_files, columns=['s_bwg_imr_files'])
+                s_bwg_imr_files_df['basename'] = s_bwg_imr_files_df["s_bwg_imr_files"].apply(lambda x: os.path.basename(x))
+
+                mydf2 = t_bwg_im_files_df.merge(s_dots_im_files_df, on='basename', how='inner')
+                mydf2 = mydf2.merge(s_bwg_imr_files_df, on='basename', how='inner')
+                print(mydf2.to_string())
+                all_files = mydf2[['t_bwg_im_files', 's_dots_im_files']]
+                all_files = [tuple(x) for x in all_files.to_numpy()]
+
+                #all_files = zip(t_bwg_im_files, s_dots_im_files)
                 dirname_dst = os.path.join(mydir, visualise)
                 for pair in all_files:
+                    print("Comparing {} with {}".format(pair[0], pair[1]))
                     img_mine = cv2.imread(pair[0])
                     img_gt = cv2.imread(pair[1])
                     #img_gt = cv2.cvtColor(img_gt, cv2.COLOR_GRAY2RGB)

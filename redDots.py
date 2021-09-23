@@ -562,6 +562,7 @@ def createFileList(myDir, formats=['.tif', '.png']):
                 if name.endswith(format):
                     fullName = os.path.join(root, name)
                     fileList.append(fullName)
+    fileList = sorted(fileList, key=str.lower)
     return fileList
 
 
@@ -616,6 +617,19 @@ def countDotsDir(src_dir):
         img = np.where(img==128, 0, img) # Getting rid of background
         numDots = countDots(img, s1=10, s2=1000)
         dots.append(numDots)
+        #print("Found {} dots in {}".format(numDots, os.path.basename(imageName)))
+    return dots
+
+def countDotsDir2(src_dir):
+    imageNames = createFileList(src_dir)
+    dots = []
+    for imageName in imageNames:
+        img_mat = cv2.imread(imageName)
+        img = np.asarray(img_mat)
+        img = np.where(img==128, 0, img) # Getting rid of background
+        numDots = countDots(img, s1=10, s2=1000)
+        dots.append((numDots, os.path.basename(imageName)))
+        #print("Found {} dots in {}".format(numDots, os.path.basename(imageName)))
     return dots
 
 
