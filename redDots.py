@@ -111,16 +111,18 @@ def enlargingAndPruningDots_1(imgDots, mask):
     imgDots = imgDots + greymask
     return imgDots
 
-def enlargingAndPruningDots(imgDots, mask, type="hp_trichome_on_top"):
-    if type == "hp_trichome_on_top":
-        imgDots = enlargingAndPruningDots_hp_trichome_on_top(imgDots, mask)
+def enlargingAndPruningDots(imgDots, mask, type="trichome_on_top"):
+    if type == "trichome_on_top":
+        imgDots = enlargingAndPruningDots_trichome_on_top(imgDots, mask)
     elif type == "big_dots_only":
         imgDots = enlargingAndPruningDots_big_dots_only(imgDots, mask)
+    elif type == "big_dots_only_error_2":
+        imgDots = enlargingAndPruningDots_big_dots_only(imgDots, mask, error_dots=2)
     return imgDots
 
 
 
-def enlargingAndPruningDots_hp_trichome_on_top(imgDots, mask):
+def enlargingAndPruningDots_trichome_on_top(imgDots, mask):
     #dims = 3
     #i = 16 # need to calculate i...
     #kernel = np.ones((dims,dims),np.uint8)
@@ -154,7 +156,7 @@ def enlargingAndPruningDots_hp_trichome_on_top(imgDots, mask):
     imgDots = imgDots + greymask
     return imgDots
 
-def enlargingAndPruningDots_big_dots_only(imgDots, mask):
+def enlargingAndPruningDots_big_dots_only(imgDots, mask, error_dots=5):
     #dims = 3
     #i = 16 # need to calculate i...
     #kernel = np.ones((dims,dims),np.uint8)
@@ -164,7 +166,7 @@ def enlargingAndPruningDots_big_dots_only(imgDots, mask):
     startingDots = countDots(imgDots, s1=10, s2=100)
     numDots = startingDots
     iterations = 1
-    while (numDots > (startingDots-5)):
+    while (numDots > (startingDots-error_dots)):
         #imgDots = cv2.dilate(imgDots,kernel,iterations=1)
         #imgDots = cv2.morphologyEx(imgDots, cv2.MORPH_BLACKHAT, kernel)
         dilation_size = 2
@@ -173,7 +175,7 @@ def enlargingAndPruningDots_big_dots_only(imgDots, mask):
         imgDots_new = cv2.dilate(imgDots, element)
 
         numDots = countDots(imgDots_new, s1=s1, s2=s2)
-        if (numDots > (startingDots-5)):
+        if (numDots > (startingDots-error_dots)):
             imgDots = imgDots_new
         #print("We've done {} iterations and there are {} dots".format(iterations, numDots))
         iterations = iterations + 1
@@ -612,7 +614,7 @@ def makeFreshDir(dirname):
         shutil.rmtree(dirname)
     os.makedirs(dirname)
 
-def enlargeDotsDir(src_dir, dst_dir, dots_type="hp_trichome_on_top", trichome_type="hp_filter"):
+def enlargeDotsDir(src_dir, dst_dir, dots_type="trichome_on_top", trichome_type="hp_filter"):
     imageNames = createFileList(src_dir)
     for imageName in imageNames:
         imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
