@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
 
     # For Pam's Linux box
-    fullDatasetPath = "/home/pam/data/micropics/redDotDataset/redDotsSamples/redDotsSamples/aphanizemenon/"
+    fullDatasetPath = "/home/pam/data/micropics/redDotDataset/redDotsSamples/redDotsSamples/aphanizomenon/"
 
     # For Pam's mac
     #fullDatasetPath = "/Users/pam/Documents/data/micropics/"
