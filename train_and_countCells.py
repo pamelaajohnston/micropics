@@ -138,12 +138,12 @@ if __name__ == "__main__":
         ["base1_128_grabcut", False, True, True, 128, 1, "trichome_on_top", "grabCut"],
     ]
 
-    parameters_to_change = [
-        ["hp_trichomes", False, True, False, 224, 1, "trichome_on_top", "hp_filter" ],
-        ["big_dots_only", False, True, False, 224, 1, "big_dots_only", "hp_filter" ],
-        ["morph_trichomes", False, True, False, 224, 1, "trichome_on_top", "morph_filter" ],
-        ["grabCut_trichomes", False, True, False, 224, 1, "trichome_on_top", "grabCut_filter" ],
-    ]
+    #parameters_to_change = [
+    #    ["hp_trichomes", False, True, False, 224, 1, "trichome_on_top", "hp_filter" ],
+    #    ["big_dots_only", False, True, False, 224, 1, "big_dots_only", "hp_filter" ],
+    #    ["morph_trichomes", False, True, False, 224, 1, "trichome_on_top", "morph_filter" ],
+    #    ["grabCut_trichomes", False, True, False, 224, 1, "trichome_on_top", "grabCut_filter" ],
+    #]
 
     for selection in parameters_to_change:
         model_name = selection[0]
