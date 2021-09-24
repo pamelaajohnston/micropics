@@ -77,6 +77,7 @@ if __name__ == "__main__":
 
     # For Pam's Linux box
     fullDatasetPath = "/home/pam/data/micropics/redDotDataset/redDotsSamples/redDotsSamples/aphanizomenon/"
+    myoutput = open("train_and_countCells_results.txt",'w')
 
     # For Pam's mac
     #fullDatasetPath = "/Users/pam/Documents/data/micropics/"
@@ -112,10 +113,12 @@ if __name__ == "__main__":
     if args.patchWidth:
         pwidth = int(args.patchWidth)
 
+    print("Getting pictures from {}".format(source_dir), file=myoutput)
+    print("Getting ground truth pictures from {}".format(groundtruth_dir), file=myoutput)
+    print("Storing intermediate pictures (and patches) to {} (will delete at end if not required).".format(dest_dir), file=myoutput)
     print("Getting pictures from {}".format(source_dir))
     print("Getting ground truth pictures from {}".format(groundtruth_dir))
     print("Storing intermediate pictures (and patches) to {} (will delete at end if not required).".format(dest_dir))
-    print("Using the model in {} for translation".format(model_file))
 
     #model_name, do_test_train_split, set_up_files, create_model, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
@@ -155,6 +158,9 @@ if __name__ == "__main__":
         big_dots_type = selection[6]
         trichome_type = selection[7]
 
+        print("***************************************************************", file=myoutput)
+        print("***************************************************************", file=myoutput)
+        print("The model {} has patch size {}x{}, batch size {}, dots {} trichome {}".format(model_name, patch_dim, patch_dim, batch_size, big_dots_type, trichome_type), file=myoutput)
         print("***************************************************************")
         print("***************************************************************")
         print("The model {} has patch size {}x{}, batch size {}, dots {} trichome {}".format(model_name, patch_dim, patch_dim, batch_size, big_dots_type, trichome_type))
@@ -294,6 +300,7 @@ if __name__ == "__main__":
 
 
         if create_model:
+            print("Training a model!!!!!!!!!!!!!!!!!!!!!!!", file=myoutput)
             print("Training a model!!!!!!!!!!!!!!!!!!!!!!!")
             dirname_src = os.path.join(train_dir, s_unlab_pat)
             dirname_dst = os.path.join(train_dir, s_bwg_pat)
@@ -322,6 +329,7 @@ if __name__ == "__main__":
         # Now run the models over the test files
 
         if run_models:
+            print("Testing the models!!!!!!!!!!!!!!!!!!!!!!!", file=myoutput)
             print("Testing the models!!!!!!!!!!!!!!!!!!!!!!!")
             for model_file in model_files:
                 for d in ["test", "train"]:
@@ -373,6 +381,8 @@ if __name__ == "__main__":
                     mydf = mydf[['model', 'imagefile', 'foundDots', 'Ismaels', 'processed']]
                     mydf['pred-Ismaels'] = abs(mydf['foundDots'] - mydf['Ismaels'])
                     mydf['pred-proc'] = abs(mydf['foundDots'] - mydf['processed'])
+                    print(mydf.to_string(), file=myoutput)
+                    print("Mean wrong dots in {} using {} vs Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()), file=myoutput)
                     print(mydf.to_string())
                     print("Mean wrong dots in {} using {} vs Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()))
 
