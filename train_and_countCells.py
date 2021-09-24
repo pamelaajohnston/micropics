@@ -122,10 +122,10 @@ if __name__ == "__main__":
     #]
 
     parameters_to_change = [
-        ["hp_trichomes", False, True, False, 224, "hp_trichome_on_top", "hp_filter" ],
-        ["big_dots_only", False, True, False, 224, "big_dots_only", "hp_filter" ],
+        #["hp_trichomes", False, True, False, 224, "hp_trichome_on_top", "hp_filter" ],
+        #["big_dots_only", False, True, False, 224, "big_dots_only", "hp_filter" ],
         ["morph_trichomes", False, True, False, 224, "hp_trichome_on_top", "morph_filter" ],
-        ["grabCut_trichomes", False, True, False, 224, "hp_trichome_on_top", "grabCut_filter" ],
+        #["grabCut_trichomes", False, True, False, 224, "hp_trichome_on_top", "grabCut_filter" ],
     ]
 
     for selection in parameters_to_change:
