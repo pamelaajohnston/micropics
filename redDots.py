@@ -111,7 +111,16 @@ def enlargingAndPruningDots_1(imgDots, mask):
     imgDots = imgDots + greymask
     return imgDots
 
-def enlargingAndPruningDots(imgDots, mask):
+def enlargingAndPruningDots(imgDots, mask, type="hp_trichome_on_top"):
+    if type == "hp_trichome_on_top":
+        imgDots = enlargingAndPruningDots_hp_trichome_on_top(imgDots, mask)
+    elif type == "big_dots_only":
+        imgDots = enlargingAndPruningDots_big_dots_only(imgDots, mask)
+    return imgDots
+
+
+
+def enlargingAndPruningDots_hp_trichome_on_top(imgDots, mask):
     #dims = 3
     #i = 16 # need to calculate i...
     #kernel = np.ones((dims,dims),np.uint8)
@@ -140,8 +149,36 @@ def enlargingAndPruningDots(imgDots, mask):
     mymask = np.array(mask,  np.uint8)
     invmask = mask = 255 - mask
     greymask = mask / 2
+    # These add the trichome mask
     imgDots = cv2.bitwise_and(imgDots, mymask)
     imgDots = imgDots + greymask
+    return imgDots
+
+def enlargingAndPruningDots_big_dots_only(imgDots, mask):
+    #dims = 3
+    #i = 16 # need to calculate i...
+    #kernel = np.ones((dims,dims),np.uint8)
+    kernel = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], np.uint8)
+    s1=10
+    s2=100
+    startingDots = countDots(imgDots, s1=10, s2=100)
+    numDots = startingDots
+    iterations = 1
+    while (numDots > (startingDots-5)):
+        #imgDots = cv2.dilate(imgDots,kernel,iterations=1)
+        #imgDots = cv2.morphologyEx(imgDots, cv2.MORPH_BLACKHAT, kernel)
+        dilation_size = 2
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * dilation_size + 1, 2 * dilation_size + 1),
+                                       (dilation_size, dilation_size))
+        imgDots_new = cv2.dilate(imgDots, element)
+
+        numDots = countDots(imgDots_new, s1=s1, s2=s2)
+        if (numDots > (startingDots-5)):
+            imgDots = imgDots_new
+        #print("We've done {} iterations and there are {} dots".format(iterations, numDots))
+        iterations = iterations + 1
+        #s1 = s1*s1
+        s2 = s2*s2
     return imgDots
 
 def repeatChannelsx3(img_in):
@@ -524,10 +561,14 @@ def convolve(image, kernel):
 	return output
 
 
-def getTrichomeMask(img, binaryMask=False):
-    img_back = hp_filter(img, binaryMask)
-    #img_back = grabCut2(img, binaryMask)
-    #img_back = morphFilter(img, binaryMask, 3)
+def getTrichomeMask(img, binaryMask=False, type="hp_filter"):
+    img_back = img
+    if type == "hp_filter":
+        img_back = hp_filter(img, binaryMask)
+    if type == "grabCut":
+        img_back = grabCut2(img, binaryMask)
+    if type == "morph_filter":
+        img_back = morphFilter(img, binaryMask, 3)
     return img_back
 
 def shapeDetection(img, bin_1c):
@@ -571,7 +612,7 @@ def makeFreshDir(dirname):
         shutil.rmtree(dirname)
     os.makedirs(dirname)
 
-def enlargeDotsDir(src_dir, dst_dir):
+def enlargeDotsDir(src_dir, dst_dir, dots_type="hp_trichome_on_top", trichome_type="hp_filter"):
     imageNames = createFileList(src_dir)
     for imageName in imageNames:
         imageBaseName = os.path.splitext(os.path.basename(imageName))[0]
@@ -582,8 +623,8 @@ def enlargeDotsDir(src_dir, dst_dir):
         #height, width = img.shape[:2]
         imgDots = getDotMask(img)
 
-        imgTrichome = getTrichomeMask(img_mat, binaryMask=True)
-        imgDots = enlargingAndPruningDots(imgDots, imgTrichome)
+        imgTrichome = getTrichomeMask(img_mat, binaryMask=True, type=trichome_type)
+        imgDots = enlargingAndPruningDots(imgDots, imgTrichome, type=dots_type)
         dotsName = os.path.join(dst_dir, "{}.png".format(imageBaseName))
         skimage.io.imsave(dotsName, imgDots, check_contrast=False)
 
@@ -627,7 +668,7 @@ def countDotsDir2(src_dir):
         img_mat = cv2.imread(imageName)
         img = np.asarray(img_mat)
         img = np.where(img==128, 0, img) # Getting rid of background
-        numDots = countDots(img, s1=10, s2=1000)
+        numDots = countDots(img, s1=10, s2=5000)
         dots.append((numDots, os.path.basename(imageName)))
         #print("Found {} dots in {}".format(numDots, os.path.basename(imageName)))
     return dots

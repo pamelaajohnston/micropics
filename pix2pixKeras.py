@@ -172,7 +172,7 @@ def generate_fake_samples(g_model, samples, patch_shape):
 	return X, y
 
 # generate samples and save as a plot and save the model
-def summarize_performance(step, g_model, dataset, n_samples=6, destDir=""):
+def summarize_performance(step, g_model, dataset, n_samples=6, destDir="", model_name=""):
 	# select a sample of input images
 	[X_realA, X_realB], _ = generate_real_samples(dataset, n_samples, 1)
 	# generate a batch of fake samples
@@ -197,18 +197,18 @@ def summarize_performance(step, g_model, dataset, n_samples=6, destDir=""):
 		pyplot.axis('off')
 		pyplot.imshow(X_realB[i])
 	# save plot to file
-	filename1 = 'plot_%06d.png' % (step+1)
+	filename1 = 'plot{}_step{}.png'.format(model_name, step+1)
 	filename1 = os.path.join(destDir, filename1)
 	pyplot.savefig(filename1)
 	pyplot.close()
 	# save the generator model
-	filename2 = 'model_%06d.h5' % (step+1)
+	filename2 = 'model{}_{}.h5'.format(model_name, step+1)
 	filename2 = os.path.join(destDir, filename2)
 	g_model.save(filename2)
 	print('>Saved: %s and %s' % (filename1, filename2))
 
 # train pix2pix models
-def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir=""):
+def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir="", model_name=""):
 	# determine the output square shape of the discriminator
 	n_patch = d_model.output_shape[1]
 	# unpack dataset
