@@ -6,24 +6,24 @@ from numpy import zeros
 from numpy import ones
 from numpy.random import randint
 from tensorflow.keras.optimizers import Adam
-from keras.initializers import RandomNormal
-from keras.models import Model
-from keras.models import Input
-from keras.layers import Conv2D
-from keras.layers import Conv2DTranspose
-from keras.layers import LeakyReLU
-from keras.layers import Activation
-from keras.layers import Concatenate
-from keras.layers import Dropout
-from keras.layers import BatchNormalization
-from keras.layers import LeakyReLU
+from tensorflow.keras.initializers import RandomNormal
+from tensorflow.keras.models import Model
+from tensorflow.keras.models import Input
+from tensorflow.keras.layers import Conv2D
+from tensorflow.keras.layers import Conv2DTranspose
+from tensorflow.keras.layers import LeakyReLU
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import Concatenate
+from tensorflow.keras.layers import Dropout
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import LeakyReLU
 from matplotlib import pyplot
 import os
 import argparse
 import shutil
-from keras.preprocessing.image import load_img
-from keras.preprocessing.image import img_to_array
-from keras.models import load_model
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.models import load_model
 import cv2
 import skimage as skimage
 from skimage import io
