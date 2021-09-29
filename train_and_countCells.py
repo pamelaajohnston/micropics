@@ -80,7 +80,7 @@ if __name__ == "__main__":
     myoutput = open("train_and_countCells_results.txt",'w')
 
     # For Pam's mac
-    #fullDatasetPath = "/Users/pam/Documents/data/micropics/"
+    #fullDatasetPath = "/Users/pam/Documents/data/micropics/aphaniz"
 
 
     labelledDataPath = os.path.join(fullDatasetPath, "labels")
@@ -204,52 +204,52 @@ if __name__ == "__main__":
             dirs = ["train", "test"]
             for d in dirs:
                 mydir = os.path.join(dest_dir, d)
-                # Patch the labelled images
+                print("Patch the labelled images")
                 dirname_src = os.path.join(mydir, s_lab_im)
                 dirname_dst = os.path.join(mydir, s_lab_pat)
                 patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
 
-                # Unpatch the labelled images (to account for crops)
+                print("Unpatch the labelled images (to account for crops)")
                 dirname_src = os.path.join(mydir, s_lab_pat)
                 dirname_dst = os.path.join(mydir, s_lab_imr)
                 patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
 
-                # Dots from ground truth (patches - gets the right image size)
+                print("Dots from ground truth (patches - gets the right image size)")
                 dirname_src = os.path.join(mydir, s_lab_pat)
                 dirname_dst = os.path.join(mydir, s_dots_pat)
                 redDots.getDotMaskDir(dirname_src, dirname_dst)
 
-                # Unpatch the ground truth dot mask (to account for crops)
+                print("Unpatch the ground truth dot mask (to account for crops)")
                 dirname_src = os.path.join(mydir, s_dots_pat)
                 dirname_dst = os.path.join(mydir, s_dots_imr)
                 patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
 
-                # Enlarge the ground truth dots (for comparison)
+                print("Enlarge the ground truth dots (for comparison)")
                 dirname_src = os.path.join(mydir, s_lab_imr)
                 dirname_dst = os.path.join(mydir, s_bwg_imr)
                 #big_dots_only; trichome_on_top
                 #hp_filter, morph_filter, grabCut,
                 redDots.enlargeDotsDir(dirname_src, dirname_dst, dots_type=big_dots_type, trichome_type=trichome_type)
 
-                # Patch the ground truth big dots for network training
+                print("Patch the ground truth big dots for network training")
                 dirname_src = os.path.join(mydir, s_bwg_imr)
                 dirname_dst = os.path.join(mydir, s_bwg_pat)
                 patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
 
-                # Dots from ground truth (images)
+                print("Dots from ground truth (images)")
                 dirname_src = os.path.join(mydir, s_lab_im)
                 dirname_dst = os.path.join(mydir, s_dots_im)
                 redDots.getDotMaskDir(dirname_src, dirname_dst)
 
-                # Patch the source
+                print("Patch the source")
                 dirname_src = os.path.join(mydir, s_unlab_im)
                 dirname_dst = os.path.join(mydir, s_unlab_pat)
                 patchRGB.patchDir(source_dir, dirname_dst, pheight, pwidth, 0, 0)
 
                 if evaluate_enlarge_dots:
-                    #print("Counting dots in dots images")
+                    print("Counting dots in dots images")
                     dirname_src = os.path.join(mydir, s_dots_imr)
-                    #print("Counting dots in processed dots images")
+                    print("Counting dots in processed dots images")
                     gtDots = redDots.countDotsDir2(dirname_src)
                     dirname_src = os.path.join(mydir, s_bwg_imr)
                     gtBigDots = redDots.countDotsDir2(dirname_src)

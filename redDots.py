@@ -85,6 +85,7 @@ def getDotMaskDir(src, dst):
         img_mat = cv2.imread(imageName)
         img = np.asarray(img_mat)
         imgDots = getDotMask(img)
+        imgDots = imgDots.astype(np.uint8)
         skimage.io.imsave(output_filename, imgDots, check_contrast=False)
 
 
@@ -113,10 +114,13 @@ def enlargingAndPruningDots_1(imgDots, mask):
 
 def enlargingAndPruningDots(imgDots, mask, type="trichome_on_top"):
     if type == "trichome_on_top":
+        #print("trichome_on_top")
         imgDots = enlargingAndPruningDots_trichome_on_top(imgDots, mask)
     elif type == "big_dots_only":
+        #print("big_dots_only")
         imgDots = enlargingAndPruningDots_big_dots_only(imgDots, mask)
     elif type == "big_dots_only_error_2":
+        #print("big_dots_only_error2")
         imgDots = enlargingAndPruningDots_big_dots_only(imgDots, mask, error_dots=2)
     return imgDots
 
@@ -131,8 +135,12 @@ def enlargingAndPruningDots_trichome_on_top(imgDots, mask):
     s2=100
     startingDots = countDots(imgDots, s1=10, s2=100)
     numDots = startingDots
+    minDots = startingDots-5
+    if minDots < 0:
+        minDots = 0
     iterations = 1
-    while (numDots > (startingDots-5)):
+    maxIterations = 20
+    while (numDots > minDots) and (iterations < maxIterations):
         #imgDots = cv2.dilate(imgDots,kernel,iterations=1)
         #imgDots = cv2.morphologyEx(imgDots, cv2.MORPH_BLACKHAT, kernel)
         dilation_size = 2
@@ -166,7 +174,12 @@ def enlargingAndPruningDots_big_dots_only(imgDots, mask, error_dots=5):
     startingDots = countDots(imgDots, s1=10, s2=100)
     numDots = startingDots
     iterations = 1
-    while (numDots > (startingDots-error_dots)):
+    minDots = startingDots-error_dots
+    if minDots < 0:
+        minDots = 0
+    iterations = 1
+    maxIterations = 20
+    while (numDots > minDots) and (iterations < maxIterations):
         #imgDots = cv2.dilate(imgDots,kernel,iterations=1)
         #imgDots = cv2.morphologyEx(imgDots, cv2.MORPH_BLACKHAT, kernel)
         dilation_size = 2
@@ -623,11 +636,15 @@ def enlargeDotsDir(src_dir, dst_dir, dots_type="trichome_on_top", trichome_type=
         img_mat = cv2.imread(imageName)
         img = np.asarray(img_mat)
         #height, width = img.shape[:2]
+        #print("get dot mask")
         imgDots = getDotMask(img)
 
+        #print("get trichome mask")
         imgTrichome = getTrichomeMask(img_mat, binaryMask=True, type=trichome_type)
+        #print("enlarging and pruning")
         imgDots = enlargingAndPruningDots(imgDots, imgTrichome, type=dots_type)
         dotsName = os.path.join(dst_dir, "{}.png".format(imageBaseName))
+        imgDots = imgDots.astype(np.uint8)
         skimage.io.imsave(dotsName, imgDots, check_contrast=False)
 
 def tidyImageDir(src_dir, dst_dir, filename_append=""):
