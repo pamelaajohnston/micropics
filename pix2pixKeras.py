@@ -218,9 +218,10 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 	# calculate the number of training iterations
 	n_steps = bat_per_epo * n_epochs
 	print("Max steps: {}, bat_per_epo: {}, n_epochs: {}".format(n_steps, bat_per_epo, n_epochs))
-	# Always save 3 models
-	#savepoint = (bat_per_epo * 10)
-	savepoint = n_steps//3
+	# Always save at least 5 models
+	savepoint = (bat_per_epo * 10)
+	if savepoint > (n_steps//5):
+		savepoint = n_steps//5
 	# manually enumerate epochs
 	for i in range(n_steps):
 		# select a batch of real samples
@@ -234,7 +235,8 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 		# update the generator
 		g_loss, _, _ = gan_model.train_on_batch(X_realA, [y_real, X_realB])
 		# summarize performance
-		print('>%d, d1[%.3f] d2[%.3f] g[%.3f]' % (i+1, d_loss1, d_loss2, g_loss))
+		if (i+1) % 10 ==0:
+			print('step {} out of {}, save: {}, d1[{}] d2[{}] g[{}]'.format(i+1, n_steps, savepoint, d_loss1, d_loss2, g_loss))
 		# summarize model performance
 		if (i+1) % savepoint == 0:
 			summarize_performance(i, g_model, dataset, destDir=destDir)
