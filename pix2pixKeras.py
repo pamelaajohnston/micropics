@@ -202,7 +202,7 @@ def summarize_performance(step, g_model, dataset, n_samples=6, destDir="", model
 	pyplot.savefig(filename1)
 	pyplot.close()
 	# save the generator model
-	filename2 = 'model{}_{}.h5'.format(model_name, step+1)
+	filename2 = 'model_{}_{}.h5'.format(model_name, step+1)
 	filename2 = os.path.join(destDir, filename2)
 	g_model.save(filename2)
 	print('>Saved: %s and %s' % (filename1, filename2))
@@ -239,7 +239,7 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 			print('step {} out of {}, save: {}, d1[{}] d2[{}] g[{}]'.format(i+1, n_steps, savepoint, d_loss1, d_loss2, g_loss))
 		# summarize model performance
 		if (i+1) % savepoint == 0:
-			summarize_performance(i, g_model, dataset, destDir=destDir)
+			summarize_performance(i, g_model, dataset, destDir=destDir, model_name=model_name)
 
 def makeFreshDir(dirname):
     if os.path.exists(dirname):
