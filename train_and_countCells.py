@@ -122,30 +122,30 @@ if __name__ == "__main__":
 
     #model_name, do_test_train_split, set_up_files, create_model, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
-        ["base1_224", True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
-        ["base1_224_no_trichome_5", False, True, True, 224, 1, "big_dots_only", "hp_filter"],
-        ["base1_224_no_trichome_2", False, True, True, 224, 1, "big_dots_only_error_2", "hp_filter"],
-        ["base1_224_morph", False, True, True, 224, 1, "trichome_on_top", "morph_filter"],
+        ["base1_224", True, True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
+        ["base1_224_no_trichome_5", False, True, True, True, 224, 1, "big_dots_only", "hp_filter"],
+        ["base1_224_no_trichome_2", False, True, True, True, 224, 1, "big_dots_only_error_2", "hp_filter"],
+        ["base1_224_morph", False, True, True, 224, True, 1, "trichome_on_top", "morph_filter"],
         ["base1_224_grabcut", False, True, True, 224, 1, "trichome_on_top", "grabCut"],
 
-        ["base10_224", False, True, True, 224, 10, "trichome_on_top", "hp_filter"],
-        ["base10_224_no_trichome_5", False, True, True, 224, 10, "big_dots_only", "hp_filter"],
-        ["base10_224_no_trichome_2", False, True, True, 224, 10, "big_dots_only_error_2", "hp_filter"],
-        ["base10_224_morph", False, True, True, 224, 10, "trichome_on_top", "morph_filter"],
-        ["base10_224_grabcut", False, True, True, 224, 10, "trichome_on_top", "grabCut"],
+        ["base10_224", False, True, True, True, 224, 10, "trichome_on_top", "hp_filter"],
+        ["base10_224_no_trichome_5", False, True, True, True, 224, 10, "big_dots_only", "hp_filter"],
+        ["base10_224_no_trichome_2", False, True, True, True, 224, 10, "big_dots_only_error_2", "hp_filter"],
+        ["base10_224_morph", False, True, True, True, 224, 10, "trichome_on_top", "morph_filter"],
+        ["base10_224_grabcut", False, True, True, True, 224, 10, "trichome_on_top", "grabCut"],
 
-        ["base1_128", True, True, True, 128, 1, "trichome_on_top", "hp_filter"],
-        ["base1_128_no_trichome_5", False, True, True, 128, 1, "big_dots_only", "hp_filter"],
-        ["base1_128_no_trichome_2", False, True, True, 128, 1, "big_dots_only_error_2", "hp_filter"],
-        ["base1_128_morph", False, True, True, 128, 1, "trichome_on_top", "morph_filter"],
-        ["base1_128_grabcut", False, True, True, 128, 1, "trichome_on_top", "grabCut"],
+        ["base1_128", True, True, True, True, 128, 1, "trichome_on_top", "hp_filter"],
+        ["base1_128_no_trichome_5", False, True, True, True, 128, 1, "big_dots_only", "hp_filter"],
+        ["base1_128_no_trichome_2", False, True, True, True, 128, 1, "big_dots_only_error_2", "hp_filter"],
+        ["base1_128_morph", False, True, True, True, 128, 1, "trichome_on_top", "morph_filter"],
+        ["base1_128_grabcut", False, True, True, True, 128, 1, "trichome_on_top", "grabCut"],
     ]
 
     #parameters_to_change = [
-    #    ["hp_trichomes", False, True, False, 224, 1, "trichome_on_top", "hp_filter" ],
-    #    ["big_dots_only", False, True, False, 224, 1, "big_dots_only", "hp_filter" ],
-    #    ["morph_trichomes", False, True, False, 224, 1, "trichome_on_top", "morph_filter" ],
-    #    ["grabCut_trichomes", False, True, False, 224, 1, "trichome_on_top", "grabCut_filter" ],
+    #    ["hp_trichomes", False, True, False, False, 224, 1, "trichome_on_top", "hp_filter" ],
+    #    ["big_dots_only", False, True, False, False, 224, 1, "big_dots_only", "hp_filter" ],
+    #    ["morph_trichomes", False, True, False, False, 224, 1, "trichome_on_top", "morph_filter" ],
+    #    ["grabCut_trichomes", False, True, False, False, 224, 1, "trichome_on_top", "grabCut_filter" ],
     #]
 
     for selection in parameters_to_change:
@@ -153,10 +153,11 @@ if __name__ == "__main__":
         do_test_train_split = selection[1]
         set_up_files = selection[2]
         create_model = selection[3]
-        patch_dim = selection[4]
-        batch_size = selection[5]
-        big_dots_type = selection[6]
-        trichome_type = selection[7]
+        run_models = selection[4]
+        patch_dim = selection[5]
+        batch_size = selection[6]
+        big_dots_type = selection[7]
+        trichome_type = selection[8]
 
         print("***************************************************************", file=myoutput)
         print("***************************************************************", file=myoutput)
@@ -319,7 +320,7 @@ if __name__ == "__main__":
             # define the composite model
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
-            m.train(d_model, g_model, gan_model, dataset, n_epochs=200, n_batch=batch_size, destDir=model_dir, model_name="")
+            m.train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
         else:
