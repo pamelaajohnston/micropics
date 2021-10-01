@@ -320,7 +320,7 @@ if __name__ == "__main__":
             # define the composite model
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
-            m.train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            m.train(d_model, g_model, gan_model, dataset, n_epochs=150, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
         else:
