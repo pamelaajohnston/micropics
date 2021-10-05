@@ -81,6 +81,7 @@ if __name__ == "__main__":
 
     # For Pam's mac
     #fullDatasetPath = "/Users/pam/Documents/data/micropics/aphaniz"
+    #fullDatasetPath = "/Users/pam/Documents/data/micropics/smallSet"
 
 
     labelledDataPath = os.path.join(fullDatasetPath, "labels")
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     print("Getting ground truth pictures from {}".format(groundtruth_dir))
     print("Storing intermediate pictures (and patches) to {} (will delete at end if not required).".format(dest_dir))
 
-    #model_name, do_test_train_split, set_up_files, create_model, patch_dim, batch_size, big_dots_type, trichome_type
+    #model_name, do_test_train_split, set_up_files, create_model, run_models, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
         ["base1_224", True, True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
         ["base1_224_no_trichome_5", False, True, True, True, 224, 1, "big_dots_only", "hp_filter"],
@@ -321,6 +322,7 @@ if __name__ == "__main__":
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
             m.train(d_model, g_model, gan_model, dataset, n_epochs=150, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            #m.train(d_model, g_model, gan_model, dataset, n_epochs=1, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
         else:
@@ -328,13 +330,16 @@ if __name__ == "__main__":
 
 
         # Now run the models over the test files
-
+        print(run_models)
         if run_models:
             print("Testing the models!!!!!!!!!!!!!!!!!!!!!!!", file=myoutput)
             print("Testing the models!!!!!!!!!!!!!!!!!!!!!!!")
             for model_file in model_files:
-                for d in ["test", "train"]:
+                print("Testing model {}".format(model_file))
+                #for d in ["test", "train"]:
+                for d in ["test",]:
                     # Style transfer the source patches
+                    print("Translating the {} set".format(d))
                     mydir = os.path.join(dest_dir, d)
                     dirname_src = os.path.join(mydir, s_unlab_pat)
                     dirname_dst = os.path.join(mydir, t_bwg_pat)
@@ -347,11 +352,13 @@ if __name__ == "__main__":
 
 
                     # Unpatch the translated image
+                    print("unpatching the translated patches")
                     dirname_src = os.path.join(mydir, t_bwg_pat)
                     dirname_dst = os.path.join(mydir, t_bwg_im)
                     patchRGB.unpatchDir(dirname_src, dirname_dst, pheight, pwidth)
 
                     # Tidy the style-transferred source complete image
+                    print("Tidying the image")
                     dirname_src = os.path.join(mydir, t_bwg_im)
                     dirname_dst = os.path.join(mydir, t_bwg_im)
                     redDots.tidyImageDir(dirname_src, dirname_dst, "")

@@ -248,7 +248,7 @@ def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample
 		bname = os.path.splitext(os.path.basename(name))[0]
 		output_filename = "{}.png".format(bname)
 		output_filename = os.path.join(dest, output_filename)
-		#print(output_filename)
+		print(output_filename)
 		outImage = X_fakeB[i]
 		resized_image = cv2.resize(outImage, (pwidth, pheight))
 		#skimage.io.imsave(output_filename, outImage, check_contrast=False)

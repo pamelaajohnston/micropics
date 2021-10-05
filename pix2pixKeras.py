@@ -216,7 +216,7 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 	# calculate the number of batches per training epoch
 	bat_per_epo = int(len(trainA) / n_batch)
 	# calculate the number of training iterations
-	n_steps = bat_per_epo * n_epochs
+	n_steps = int(bat_per_epo * n_epochs)
 	print("Max steps: {}, bat_per_epo: {}, n_epochs: {}".format(n_steps, bat_per_epo, n_epochs))
 	# Always save at least 5 models
 	savepoint = (bat_per_epo * 10)
