@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
     #model_name, do_test_train_split, set_up_files, create_model, run_models, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
-        ["base1_224", True, True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
+        ["base1_224", False, False, False, True, 224, 1, "trichome_on_top", "hp_filter"],
         ["base1_224_no_trichome_5", False, True, True, True, 224, 1, "big_dots_only", "hp_filter"],
         ["base1_224_no_trichome_2", False, True, True, True, 224, 1, "big_dots_only_error_2", "hp_filter"],
         ["base1_224_morph", False, True, True, 224, True, 1, "trichome_on_top", "morph_filter"],
@@ -201,6 +201,11 @@ if __name__ == "__main__":
                 copy_files_into_dir(trainList, train_src_label)
                 labelList = (x.replace("labels", "originals") for x in trainList)
                 copy_files_into_dir(labelList, train_src_unlabel)
+            else: 
+                train_dir = os.path.join(dest_dir, "train")
+                test_dir = os.path.join(dest_dir, "test")
+                model_dir =  os.path.join(dest_dir, "models")
+              
 
             # Now prep what we can without a model:
             dirs = ["train", "test"]
@@ -321,12 +326,13 @@ if __name__ == "__main__":
             # define the composite model
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
-            m.train(d_model, g_model, gan_model, dataset, n_epochs=150, n_batch=batch_size, destDir=model_dir, model_name=model_name)
-            #m.train(d_model, g_model, gan_model, dataset, n_epochs=1, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            #m.train(d_model, g_model, gan_model, dataset, n_epochs=50, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            m.train(d_model, g_model, gan_model, dataset, n_epochs=1, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
         else:
-            model_files = [model_file,]
+           model_files = redDots.createFileList(model_dir, formats=['.h5'])
+           #model_files = [model_file,]
 
 
         # Now run the models over the test files

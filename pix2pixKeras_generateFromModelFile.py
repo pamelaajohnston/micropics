@@ -225,35 +225,48 @@ def countDots(img, s1=10, s2=100):
 	#Dots number: 23
 
 def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample=False):
+	# loading the model
+	g_model = load_model(model_file)
+	
+	
 	inputFilenames = createFileList(source)
 	samples = []
+	myFilenames = []
+	list_of_samples = []
+	list_of_myFilenames = []
+	batch_size = 5
 	# creating the samples
-	for name in inputFilenames:
+	for i, name in enumerate(inputFilenames):
 		#print("Sample name {}".format(name))
 		s = load_one_sample(name, size=(256,256), syntheticSample=syntheticSample)
 		samples.append(s)
+		myFilenames.append(name)
+		if i % batch_size == 0:
+			samples = np.asarray(samples)
+			list_of_samples.append(samples)
+			list_of_myFilenames.append(myFilenames)
+			samples = []
+			myFilenames = []
 
-	samples = np.asarray(samples)
-	scaled_samples = (samples + 1) / 2.0
+	#scaled_samples = (samples + 1) / 2.0
 	#print("The shape of the samples is: {}".format(samples.shape))
 
-	# loading the model
-	g_model = load_model(model_file)
-	X_fakeB, _ = generate_fake_samples(g_model, samples, 1)
-	X_fakeB = (X_fakeB + 1) / 2.0
-	X_fakeB = np.uint8(X_fakeB*255)
+	for samples, inputFilenames in zip(list_of_samples, list_of_myFilenames):
+		X_fakeB, _ = generate_fake_samples(g_model, samples, 1)
+		X_fakeB = (X_fakeB + 1) / 2.0
+		X_fakeB = np.uint8(X_fakeB*255)
 
-	# Saving the stuff to a directory
-	for i, name in enumerate(inputFilenames):
-		bname = os.path.splitext(os.path.basename(name))[0]
-		output_filename = "{}.png".format(bname)
-		output_filename = os.path.join(dest, output_filename)
-		print(output_filename)
-		outImage = X_fakeB[i]
-		resized_image = cv2.resize(outImage, (pwidth, pheight))
-		#skimage.io.imsave(output_filename, outImage, check_contrast=False)
-		#resized_image = (resized_image*255).astype(np.uint8)
-		skimage.io.imsave(output_filename, resized_image, check_contrast=False)
+		# Saving the stuff to a directory
+		for i, name in enumerate(inputFilenames):
+		    bname = os.path.splitext(os.path.basename(name))[0]
+		    output_filename = "{}.png".format(bname)
+		    output_filename = os.path.join(dest, output_filename)
+		    print(output_filename)
+		    outImage = X_fakeB[i]
+		    resized_image = cv2.resize(outImage, (pwidth, pheight))
+		    #skimage.io.imsave(output_filename, outImage, check_contrast=False)
+		    #resized_image = (resized_image*255).astype(np.uint8)
+		    skimage.io.imsave(output_filename, resized_image, check_contrast=False)
 
 
 
