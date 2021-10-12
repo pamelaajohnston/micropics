@@ -241,7 +241,7 @@ def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample
 		s = load_one_sample(name, size=(256,256), syntheticSample=syntheticSample)
 		samples.append(s)
 		myFilenames.append(name)
-		if i % batch_size == 0:
+		if (i % batch_size == 0) or (len(inputFilenames) == (i+1)):
 			samples = np.asarray(samples)
 			list_of_samples.append(samples)
 			list_of_myFilenames.append(myFilenames)
