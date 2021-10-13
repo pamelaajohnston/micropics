@@ -123,7 +123,8 @@ if __name__ == "__main__":
 
     #model_name, do_test_train_split, set_up_files, create_model, run_models, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
-        ["base1_224", False, False, False, True, 224, 1, "trichome_on_top", "hp_filter"],
+        #["base1_224", False, False, False, True, 224, 1, "trichome_on_top", "hp_filter"],
+        ["base1_224", True, True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
         ["base1_224_no_trichome_5", False, True, True, True, 224, 1, "big_dots_only", "hp_filter"],
         ["base1_224_no_trichome_2", False, True, True, True, 224, 1, "big_dots_only_error_2", "hp_filter"],
         ["base1_224_morph", False, True, True, 224, True, 1, "trichome_on_top", "morph_filter"],
@@ -201,11 +202,11 @@ if __name__ == "__main__":
                 copy_files_into_dir(trainList, train_src_label)
                 labelList = (x.replace("labels", "originals") for x in trainList)
                 copy_files_into_dir(labelList, train_src_unlabel)
-            else: 
+            else:
                 train_dir = os.path.join(dest_dir, "train")
                 test_dir = os.path.join(dest_dir, "test")
                 model_dir =  os.path.join(dest_dir, "models")
-              
+
 
             # Now prep what we can without a model:
             dirs = ["train", "test"]
