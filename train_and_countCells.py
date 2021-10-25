@@ -123,24 +123,24 @@ if __name__ == "__main__":
 
     #model_name, do_test_train_split, set_up_files, create_model, run_models, patch_dim, batch_size, big_dots_type, trichome_type
     parameters_to_change = [
-        #["base1_224", False, False, False, True, 224, 1, "trichome_on_top", "hp_filter"],
-        ["base1_224", True, True, True, True, 224, 1, "trichome_on_top", "hp_filter"],
-        ["base1_224_no_trichome_5", False, True, True, True, 224, 1, "big_dots_only", "hp_filter"],
-        ["base1_224_no_trichome_2", False, True, True, True, 224, 1, "big_dots_only_error_2", "hp_filter"],
-        ["base1_224_morph", False, True, True, 224, True, 1, "trichome_on_top", "morph_filter"],
-        ["base1_224_grabcut", False, True, True, 224, 1, "trichome_on_top", "grabCut"],
+        ["base1_224",                   False,  False,  False,  True, 224, 1, "trichome_on_top", "hp_filter"],
+        #["base1_224",                  True,   True,   True,   True, 224, 1, "trichome_on_top", "hp_filter"],
+        #["base1_224_no_trichome_5",    False,  True,   True,   True, 224, 1, "big_dots_only", "hp_filter"],
+        #["base1_224_no_trichome_2",    False,  True,   True,   True, 224, 1, "big_dots_only_error_2", "hp_filter"],
+        ["base1_224_morph",             False,  True,   True,   True, 224, 1, "trichome_on_top", "morph_filter"],
+        ["base1_224_grabcut",           False,  True,   True,   True, 224, 1, "trichome_on_top", "grabCut"],
 
-        ["base10_224", False, True, True, True, 224, 10, "trichome_on_top", "hp_filter"],
-        ["base10_224_no_trichome_5", False, True, True, True, 224, 10, "big_dots_only", "hp_filter"],
-        ["base10_224_no_trichome_2", False, True, True, True, 224, 10, "big_dots_only_error_2", "hp_filter"],
-        ["base10_224_morph", False, True, True, True, 224, 10, "trichome_on_top", "morph_filter"],
-        ["base10_224_grabcut", False, True, True, True, 224, 10, "trichome_on_top", "grabCut"],
+        ["base10_224",                  False,  True,   True,   True, 224, 10, "trichome_on_top", "hp_filter"],
+        ["base10_224_no_trichome_5",    False,  True,   True,   True, 224, 10, "big_dots_only", "hp_filter"],
+        ["base10_224_no_trichome_2",    False,  True,   True,   True, 224, 10, "big_dots_only_error_2", "hp_filter"],
+        ["base10_224_morph",            False,  True,   True,   True, 224, 10, "trichome_on_top", "morph_filter"],
+        ["base10_224_grabcut",          False,  True,   True,   True, 224, 10, "trichome_on_top", "grabCut"],
 
-        ["base1_128", True, True, True, True, 128, 1, "trichome_on_top", "hp_filter"],
-        ["base1_128_no_trichome_5", False, True, True, True, 128, 1, "big_dots_only", "hp_filter"],
-        ["base1_128_no_trichome_2", False, True, True, True, 128, 1, "big_dots_only_error_2", "hp_filter"],
-        ["base1_128_morph", False, True, True, True, 128, 1, "trichome_on_top", "morph_filter"],
-        ["base1_128_grabcut", False, True, True, True, 128, 1, "trichome_on_top", "grabCut"],
+        ["base1_128",                   False,  True,   True,   True, 128, 1, "trichome_on_top", "hp_filter"],
+        ["base1_128_no_trichome_5",     False,  True,   True,   True, 128, 1, "big_dots_only", "hp_filter"],
+        ["base1_128_no_trichome_2",     False,  True,   True,   True, 128, 1, "big_dots_only_error_2", "hp_filter"],
+        ["base1_128_morph",             False,  True,   True,   True, 128, 1, "trichome_on_top", "morph_filter"],
+        ["base1_128_grabcut",           False,  True,   True,   True, 128, 1, "trichome_on_top", "grabCut"],
     ]
 
     #parameters_to_change = [
@@ -252,7 +252,7 @@ if __name__ == "__main__":
                 print("Patch the source")
                 dirname_src = os.path.join(mydir, s_unlab_im)
                 dirname_dst = os.path.join(mydir, s_unlab_pat)
-                patchRGB.patchDir(source_dir, dirname_dst, pheight, pwidth, 0, 0)
+                patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
 
                 if evaluate_enlarge_dots:
                     print("Counting dots in dots images")
@@ -327,8 +327,8 @@ if __name__ == "__main__":
             # define the composite model
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
-            #m.train(d_model, g_model, gan_model, dataset, n_epochs=50, n_batch=batch_size, destDir=model_dir, model_name=model_name)
-            m.train(d_model, g_model, gan_model, dataset, n_epochs=1, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            m.train(d_model, g_model, gan_model, dataset, n_epochs=50, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            #m.train(d_model, g_model, gan_model, dataset, n_epochs=1, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
         else:
@@ -345,9 +345,13 @@ if __name__ == "__main__":
                 print("Testing model {}".format(model_file))
                 #for d in ["test", "train"]:
                 for d in ["test",]:
+                    mydir = os.path.join(dest_dir, d)
+                    #print("Patch the source")
+                    #dirname_src = os.path.join(mydir, s_unlab_im)
+                    #dirname_dst = os.path.join(mydir, s_unlab_pat)
+                    #patchRGB.patchDir(dirname_src, dirname_dst, pheight, pwidth, 0, 0)
                     # Style transfer the source patches
                     print("Translating the {} set".format(d))
-                    mydir = os.path.join(dest_dir, d)
                     dirname_src = os.path.join(mydir, s_unlab_pat)
                     dirname_dst = os.path.join(mydir, t_bwg_pat)
                     t.translate(model_file, dirname_src, dirname_dst)
@@ -397,9 +401,10 @@ if __name__ == "__main__":
                     mydf['pred-Ismaels'] = abs(mydf['foundDots'] - mydf['Ismaels'])
                     mydf['pred-proc'] = abs(mydf['foundDots'] - mydf['processed'])
                     print(mydf.to_string(), file=myoutput)
-                    print("Mean wrong dots in {} using {} vs Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()), file=myoutput)
+                    print("Mean wrong dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()), file=myoutput)
                     print(mydf.to_string())
-                    print("Mean wrong dots in {} using {} vs Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()))
+                    print("Mean wrong dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()))
+                    print("Mean dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['Ismaels'].mean(), mydf['processed'].mean()))
 
 
                     # lastly, visualise (somehow...)
