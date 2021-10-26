@@ -127,20 +127,20 @@ if __name__ == "__main__":
         #["base1_224",                  True,   True,   True,   True, 224, 1, "trichome_on_top", "hp_filter"],
         #["base1_224_no_trichome_5",    False,  True,   True,   True, 224, 1, "big_dots_only", "hp_filter"],
         #["base1_224_no_trichome_2",    False,  True,   True,   True, 224, 1, "big_dots_only_error_2", "hp_filter"],
-        ["base1_224_morph",             False,  True,   True,   True, 224, 1, "trichome_on_top", "morph_filter"],
-        ["base1_224_grabcut",           False,  True,   True,   True, 224, 1, "trichome_on_top", "grabCut"],
+        #["base1_224_morph",             False,  True,   True,   True, 224, 1, "trichome_on_top", "morph_filter"],
+        #["base1_224_grabcut",           False,  True,   True,   True, 224, 1, "trichome_on_top", "grabCut"],
 
         ["base10_224",                  False,  True,   True,   True, 224, 10, "trichome_on_top", "hp_filter"],
         ["base10_224_no_trichome_5",    False,  True,   True,   True, 224, 10, "big_dots_only", "hp_filter"],
         ["base10_224_no_trichome_2",    False,  True,   True,   True, 224, 10, "big_dots_only_error_2", "hp_filter"],
         ["base10_224_morph",            False,  True,   True,   True, 224, 10, "trichome_on_top", "morph_filter"],
-        ["base10_224_grabcut",          False,  True,   True,   True, 224, 10, "trichome_on_top", "grabCut"],
+        #["base10_224_grabcut",          False,  True,   True,   True, 224, 10, "trichome_on_top", "grabCut"],
 
         ["base1_128",                   False,  True,   True,   True, 128, 1, "trichome_on_top", "hp_filter"],
         ["base1_128_no_trichome_5",     False,  True,   True,   True, 128, 1, "big_dots_only", "hp_filter"],
         ["base1_128_no_trichome_2",     False,  True,   True,   True, 128, 1, "big_dots_only_error_2", "hp_filter"],
         ["base1_128_morph",             False,  True,   True,   True, 128, 1, "trichome_on_top", "morph_filter"],
-        ["base1_128_grabcut",           False,  True,   True,   True, 128, 1, "trichome_on_top", "grabCut"],
+        #["base1_128_grabcut",           False,  True,   True,   True, 128, 1, "trichome_on_top", "grabCut"],
     ]
 
     #parameters_to_change = [
@@ -268,10 +268,11 @@ if __name__ == "__main__":
                     mydf = gtBigDots_df.merge(gtDots_df, on='imagefile', how='inner')
                     #mydf['model'] = os.path.basename(model_file)
                     mydf['wrong dots'] = abs(mydf['Ismaels'] - mydf['processed'])
+                    mydf['wrong dots percentage'] = 100 * mydf['wrong dots']/mydf['Ismaels']
                     mydf['model'] = model_name
-                    mydf = mydf[['model', 'imagefile', 'Ismaels', 'processed', 'wrong dots']]
+                    mydf = mydf[['model', 'imagefile', 'Ismaels', 'processed', 'wrong dots', 'wrong dots percentage']]
                     print(mydf.to_string())
-                    print("Mean wrong dots in {} using {} = {}".format(d, model_name, mydf['wrong dots'].mean()))
+                    print("Mean wrong dots in {} using {} = {}, percentage: ".format(d, model_name, mydf['wrong dots'].mean(), mydf['wrong dots percentage'].mean()))
 
                     # lastly, visualise (somehow...)
                     s_dots_im_files = redDots.createFileList(os.path.join(mydir, s_dots_imr))
@@ -400,12 +401,15 @@ if __name__ == "__main__":
                     mydf = mydf[['model', 'imagefile', 'foundDots', 'Ismaels', 'processed']]
                     mydf['pred-Ismaels'] = abs(mydf['foundDots'] - mydf['Ismaels'])
                     mydf['pred-proc'] = abs(mydf['foundDots'] - mydf['processed'])
+                    mydf['pI percentage'] = 100*mydf['pred-Ismaels']/mydf['Ismaels']
+                    mydf['pP percentage'] = 100*mydf['pred-proc']/mydf['processed']
+                   
                     print(mydf.to_string(), file=myoutput)
-                    print("Mean wrong dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()), file=myoutput)
+                    print("Mean wrong dots in {} using {} Ismaels {} ({} per cent) vs processed {} ({} per cent)".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pI percentage'].mean(),mydf['pred-proc'].mean(), mydf['pP percentage'].mean()), file=myoutput)
                     print(mydf.to_string())
                     print("Mean wrong dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()))
                     print("Mean dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['Ismaels'].mean(), mydf['processed'].mean()))
-
+                    print("Mean wrong dots in {} using {} Ismaels {} ({} per cent) vs processed {} ({} per cent)".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pI percentage'].mean(),mydf['pred-proc'].mean(), mydf['pP percentage'].mean()))
 
                     # lastly, visualise (somehow...)
                     t_bwg_im_files = redDots.createFileList(os.path.join(mydir, t_bwg_im))
