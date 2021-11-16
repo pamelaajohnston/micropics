@@ -16,7 +16,7 @@ import redDots
 import generatePictures
 import pix2pixKeras as m # m for model
 import pandas as pd
-from keras import clear_session()
+#from keras import clear_session
 
 # Directory structure:
 #
