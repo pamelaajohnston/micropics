@@ -16,6 +16,7 @@ import redDots
 import generatePictures
 import pix2pixKeras as m # m for model
 import pandas as pd
+from keras import clear_session()
 
 # Directory structure:
 #
@@ -144,7 +145,7 @@ if __name__ == "__main__":
         #["base1_224",                   False,  True,  False,  False, 224, 1, "trichome_on_top", "hp_filter"],
     ]
 
-    parameters_to_change = [
+    parameters_to_change2 = [
         ["hp_trichomes", False, False, True, True, 224, 1, "trichome_on_top", "hp_filter" ],
         ["big_dots_only", False, False, True, True, 224, 1, "big_dots_only", "hp_filter" ],
         ["morph_trichomes", False, False, True, True, 224, 1, "trichome_on_top", "morph_filter" ],
@@ -329,8 +330,8 @@ if __name__ == "__main__":
             # define the composite model
             gan_model = m.define_gan(g_model, d_model, image_shape)
             # train model
-            #m.train(d_model, g_model, gan_model, dataset, n_epochs=150, n_batch=batch_size, destDir=model_dir, model_name=model_name)
-            m.train(d_model, g_model, gan_model, dataset, n_epochs=0.01, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            m.train(d_model, g_model, gan_model, dataset, n_epochs=150, n_batch=batch_size, destDir=model_dir, model_name=model_name)
+            #m.train(d_model, g_model, gan_model, dataset, n_epochs=0.01, n_batch=batch_size, destDir=model_dir, model_name=model_name)
 
             model_files = redDots.createFileList(model_dir, formats=['.h5'])
             

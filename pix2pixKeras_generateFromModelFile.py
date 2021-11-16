@@ -267,6 +267,8 @@ def translate(model_file, source, dest, pheight=224, pwidth=224, syntheticSample
 		    #skimage.io.imsave(output_filename, outImage, check_contrast=False)
 		    #resized_image = (resized_image*255).astype(np.uint8)
 		    skimage.io.imsave(output_filename, resized_image, check_contrast=False)
+		    
+	del g_model
 
 
 
