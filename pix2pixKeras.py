@@ -22,8 +22,11 @@ import os
 import argparse
 import shutil
 
+#### weirdly it keeps dying...it's a memory leak somewhere in summarise_results
+#import tracemalloc
+
 # define the discriminator model
-def define_discriminator(image_shape):
+def define_discriminator(image_shape, lr=0.0002):
 	# weight initialization
 	init = RandomNormal(stddev=0.02)
 	# source image input
@@ -57,7 +60,7 @@ def define_discriminator(image_shape):
 	# define model
 	model = Model([in_src_image, in_target_image], patch_out)
 	# compile model
-	opt = Adam(learning_rate=0.0002, beta_1=0.5)
+	opt = Adam(learning_rate=lr, beta_1=0.5)
 	model.compile(loss='binary_crossentropy', optimizer=opt, loss_weights=[0.5])
 	return model
 
@@ -124,7 +127,7 @@ def define_generator(image_shape=(256,256,3)):
 	return model
 
 # define the combined generator and discriminator model, for updating the generator
-def define_gan(g_model, d_model, image_shape):
+def define_gan(g_model, d_model, image_shape, lr=0.0002):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
 	# define the source image
@@ -136,7 +139,7 @@ def define_gan(g_model, d_model, image_shape):
 	# src image as input, generated image and classification output
 	model = Model(in_src, [dis_out, gen_out])
 	# compile model
-	opt = Adam(lr=0.0002, beta_1=0.5)
+	opt = Adam(lr=lr, beta_1=0.5)
 	model.compile(loss=['binary_crossentropy', 'mae'], optimizer=opt, loss_weights=[1,100])
 	return model
 
@@ -185,17 +188,17 @@ def summarize_performance(step, g_model, dataset, n_samples=6, destDir="", model
 	for i in range(n_samples):
 		pyplot.subplot(3, n_samples, 1 + i)
 		pyplot.axis('off')
-		pyplot.imshow(X_realA[i])
+		#pyplot.imshow(X_realA[i])
 	# plot generated target image
 	for i in range(n_samples):
 		pyplot.subplot(3, n_samples, 1 + n_samples + i)
 		pyplot.axis('off')
-		pyplot.imshow(X_fakeB[i])
+		#pyplot.imshow(X_fakeB[i])
 	# plot real target image
 	for i in range(n_samples):
 		pyplot.subplot(3, n_samples, 1 + n_samples*2 + i)
 		pyplot.axis('off')
-		pyplot.imshow(X_realB[i])
+		#pyplot.imshow(X_realB[i])
 	# save plot to file
 	filename1 = 'plot{}_step{}.png'.format(model_name, step+1)
 	filename1 = os.path.join(destDir, filename1)
@@ -222,6 +225,9 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 	savepoint = (bat_per_epo * 10)
 	if savepoint > (n_steps//5):
 		savepoint = n_steps//5
+	# only save 5 models (hacky hack...!)
+	savepoint = n_steps//5
+	#tracemalloc.start()
 	# manually enumerate epochs
 	for i in range(n_steps):
 		# select a batch of real samples
@@ -234,12 +240,19 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 		d_loss2 = d_model.train_on_batch([X_realA, X_fakeB], y_fake)
 		# update the generator
 		g_loss, _, _ = gan_model.train_on_batch(X_realA, [y_real, X_realB])
-		# summarize performance
+		# summarize performance (and check memory?)
 		if (i+1) % 10 ==0:
 			print('step {} out of {}, save: {}, d1[{}] d2[{}] g[{}]'.format(i+1, n_steps, savepoint, d_loss1, d_loss2, g_loss))
 		# summarize model performance
 		if (i+1) % savepoint == 0:
+		#if True:
+			print('Saving model {}'.format(model_name))
 			summarize_performance(i, g_model, dataset, destDir=destDir, model_name=model_name)
+			#snapshot = tracemalloc.take_snapshot()
+			#top_stats = snapshot.statistics('lineno')
+			#for stat in top_stats[:10]:
+			#    print(stat)
+
 
 def makeFreshDir(dirname):
     if os.path.exists(dirname):

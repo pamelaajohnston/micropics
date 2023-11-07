@@ -148,7 +148,7 @@ if __name__ == "__main__":
         ["base1_128_morph",             False,  True,   True,   True, 128, 1, "trichome_on_top", "morph_filter"],
         #["base1_128_grabcut",           False,  True,   True,   True, 128, 1, "trichome_on_top", "grabCut"],
         
-        ["base1_224",                   False,  True,  False,  False, 224, 1, "trichome_on_top", "hp_filter"],
+        #["base1_224",                   False,  True,  False,  False, 224, 1, "trichome_on_top", "hp_filter"],
     ]
     parameters_to_change = [ parameters_to_change_orig[0],]
     if args.matrixEntry:
@@ -162,6 +162,12 @@ if __name__ == "__main__":
         ["morph_trichomes", False, False, True, True, 224, 1, "trichome_on_top", "morph_filter" ],
         #["grabCut_trichomes", False, False, True, True, 224, 1, "trichome_on_top", "grabCut_filter" ],
     ]
+    
+    ## Hacking in for testing the models only
+    parameters_to_change = [
+        ["allOfThem", False,   False,   False,   True,  224, 1, "all", "none"],
+    ]
+   
 
     for selection in parameters_to_change:
         model_name = selection[0]
