@@ -85,6 +85,8 @@ if __name__ == "__main__":
     #fullDatasetPath = "/Users/pam/Documents/data/micropics/aphaniz"
     #fullDatasetPath = "/Users/pam/Documents/data/micropics/smallSet"
 
+    # For the other big fat machine
+    fullDatasetPath = "/home/pam/micropics/cyanobacteriaRedDots/aphaniz/"
 
     labelledDataPath = os.path.join(fullDatasetPath, "labels")
     unlabelledDataPath = os.path.join(fullDatasetPath, "originals")

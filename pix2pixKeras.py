@@ -226,7 +226,7 @@ def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir
 	if savepoint > (n_steps//5):
 		savepoint = n_steps//5
 	# only save 5 models (hacky hack...!)
-	savepoint = n_steps//5
+	#savepoint = n_steps//5
 	#tracemalloc.start()
 	# manually enumerate epochs
 	for i in range(n_steps):
