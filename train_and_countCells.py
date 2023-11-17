@@ -434,7 +434,7 @@ if __name__ == "__main__":
                     print(mydf.to_string())
                     print("Mean wrong dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pred-proc'].mean()))
                     print("Mean dots in {} using {} Ismaels {} vs processed {}".format(d, model_name, mydf['Ismaels'].mean(), mydf['processed'].mean()))
-                    print("Mean wrong dots in {} using {} Ismaels {} ({} per cent) vs processed {} ({} per cent)".format(d, model_name, mydf['pred-Ismaels'].mean(), mydf['pI percentage'].mean(),mydf['pred-proc'].mean(), mydf['pP percentage'].mean()))
+                    print("Mean wrong dots in {} using {}({}) Ismaels {} ({} per cent) vs processed {} ({} per cent)".format(d, model_name,model_file, mydf['pred-Ismaels'].mean(), mydf['pI percentage'].mean(),mydf['pred-proc'].mean(), mydf['pP percentage'].mean()))
 
                     # lastly, visualise (somehow...)
                     t_bwg_im_files = redDots.createFileList(os.path.join(mydir, t_bwg_im))
