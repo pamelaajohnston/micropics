@@ -4,6 +4,7 @@ from numpy import load
 from numpy import zeros
 from numpy import ones
 from numpy.random import randint
+import tensorflow as tf
 #from keras.optimizers import Adam
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.initializers import RandomNormal
@@ -24,6 +25,7 @@ import shutil
 
 #### weirdly it keeps dying...it's a memory leak somewhere in summarise_results
 #import tracemalloc
+
 
 # define the discriminator model
 def define_discriminator(image_shape, lr=0.0002):
@@ -61,7 +63,8 @@ def define_discriminator(image_shape, lr=0.0002):
 	model = Model([in_src_image, in_target_image], patch_out)
 	# compile model
 	opt = Adam(learning_rate=lr, beta_1=0.5)
-	model.compile(loss='binary_crossentropy', optimizer=opt, loss_weights=[0.5])
+	#lw = tf.reshape(tf.convert_to_tensor([0.5]), (1, -1))
+	model.compile(loss='binary_crossentropy', optimizer=opt, loss_weights=[float(0.5)])
 	return model
 
 # define an encoder block
@@ -127,9 +130,13 @@ def define_generator(image_shape=(256,256,3)):
 	return model
 
 # define the combined generator and discriminator model, for updating the generator
+# define the combined generator and discriminator model, for updating the generator
 def define_gan(g_model, d_model, image_shape, lr=0.0002):
 	# make weights in the discriminator not trainable
 	d_model.trainable = False
+	#for layer in d_model.layers:
+	#	if not isinstance(layer, BatchNormalization):
+	#		layer.trainable = False
 	# define the source image
 	in_src = Input(shape=image_shape)
 	# connect the source image to the generator input
@@ -139,7 +146,7 @@ def define_gan(g_model, d_model, image_shape, lr=0.0002):
 	# src image as input, generated image and classification output
 	model = Model(in_src, [dis_out, gen_out])
 	# compile model
-	opt = Adam(lr=lr, beta_1=0.5)
+	opt = Adam(learning_rate=lr, beta_1=0.5)
 	model.compile(loss=['binary_crossentropy', 'mae'], optimizer=opt, loss_weights=[1,100])
 	return model
 
@@ -211,6 +218,34 @@ def summarize_performance(step, g_model, dataset, n_samples=6, destDir="", model
 	print('>Saved: %s and %s' % (filename1, filename2))
 
 # train pix2pix models
+# train pix2pix model
+def train_new(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1):
+	# determine the output square shape of the discriminator
+	n_patch = d_model.output_shape[1]
+	# unpack dataset
+	trainA, trainB = dataset
+	# calculate the number of batches per training epoch
+	bat_per_epo = int(len(trainA) / n_batch)
+	# calculate the number of training iterations
+	n_steps = bat_per_epo * n_epochs
+	# manually enumerate epochs
+	for i in range(n_steps):
+		# select a batch of real samples
+		[X_realA, X_realB], y_real = generate_real_samples(dataset, n_batch, n_patch)
+		# generate a batch of fake samples
+		X_fakeB, y_fake = generate_fake_samples(g_model, X_realA, n_patch)
+		# update discriminator for real samples
+		d_loss1 = d_model.train_on_batch([X_realA, X_realB], y_real)
+		# update discriminator for generated samples
+		d_loss2 = d_model.train_on_batch([X_realA, X_fakeB], y_fake)
+		# update the generator
+		g_loss, _, _ = gan_model.train_on_batch(X_realA, [y_real, X_realB])
+		# summarize performance
+		print('>%d, d1[%.3f] d2[%.3f] g[%.3f]' % (i+1, d_loss1, d_loss2, g_loss))
+		# summarize model performance
+		if (i+1) % (bat_per_epo * 10) == 0:
+			summarize_performance(i, g_model, dataset)
+
 def train(d_model, g_model, gan_model, dataset, n_epochs=100, n_batch=1, destDir="", model_name=""):
 	# determine the output square shape of the discriminator
 	n_patch = d_model.output_shape[1]
